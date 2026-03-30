@@ -4,9 +4,14 @@ import { showObPhotoPreview } from '../photo/photo.js';
 
 export const quiz = { step:0, scores:{}, answers:[], _started:false };
 
+// dragState muss global sein damit Event-Handler darauf zugreifen können
+var dragState = window.dragState = {active:false, startX:0, startY:0, card:null, tx:0};
+
 export function goToScreen(id){
   document.querySelectorAll('.ob-screen').forEach(function(s){s.classList.remove('active');});
   var sc=document.getElementById(id); if(sc){sc.classList.add('active');sc.scrollTop=0;}
+  // Reset quiz wenn man zurück zu Foto geht
+  if(id==='obPhoto'){ quiz._started=false; quiz.step=0; quiz.answers=[]; quiz.scores={}; }
   if(id==='obQuiz'&&!quiz._started){quiz._started=true;initScores();quiz.step=0;quiz.answers=[];buildCards();updateProgress();}
   if((id==='obQuiz'||id==='obResult')&&window.appState.obPhotoDataUrl) showObPhotoPreview(window.appState.obPhotoDataUrl);
 }
