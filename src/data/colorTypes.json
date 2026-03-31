@@ -1,0 +1,364 @@
+{
+  "spring_light": {
+    "name": "Heller Frühling",
+    "season": "Frühling",
+    "gradient": "conic-gradient(#f9d89c,#f5c07a,#e8a85a,#f0d4a0,#f9d89c)",
+    "desc": "Sehr heller, warmer Hautton",
+    "good": [
+      { "hex": "#f9d89c", "name": "Pfirsich" },
+      { "hex": "#f5c07a", "name": "Apricot" },
+      { "hex": "#e8c48a", "name": "Karamell" },
+      { "hex": "#a8d4a0", "name": "Mintgrün" },
+      { "hex": "#7ab8d0", "name": "Himmelblau" },
+      { "hex": "#f0e0b0", "name": "Champagner" },
+      { "hex": "#e8a878", "name": "Lachs" },
+      { "hex": "#c8d8a0", "name": "Hellgrün" },
+      { "hex": "#d4b896", "name": "Sand" },
+      { "hex": "#b8d4e0", "name": "Eisblau" },
+      { "hex": "#f0c8a0", "name": "Goldbeige" },
+      { "hex": "#c8e8d0", "name": "Mintcreme" }
+    ],
+    "avoid": [
+      { "hex": "#1a1a2e", "name": "Schwarz" },
+      { "hex": "#6a2a3a", "name": "Dunkelrot" },
+      { "hex": "#2a3a5a", "name": "Dunkelblau" },
+      { "hex": "#4a3a2a", "name": "Dunkelbraun" },
+      { "hex": "#5a5a3a", "name": "Dunkeloliv" },
+      { "hex": "#8a3a5a", "name": "Pflaume" },
+      { "hex": "#3a4a3a", "name": "Waldgrün" },
+      { "hex": "#6a5a8a", "name": "Dunkellila" }
+    ]
+  },
+  "spring_warm": {
+    "name": "Warmer Frühling",
+    "season": "Frühling",
+    "gradient": "conic-gradient(#f5a830,#e8922a,#d4782a,#f0b860,#f5a830)",
+    "desc": "Goldener, warmer Hautton · Goldblondes Haar",
+    "good": [
+      { "hex": "#f5a830", "name": "Goldgelb" },
+      { "hex": "#e88030", "name": "Orange" },
+      { "hex": "#d46820", "name": "Mandarine" },
+      { "hex": "#c8d840", "name": "Gelbgrün" },
+      { "hex": "#70c870", "name": "Frühlingsgrün" },
+      { "hex": "#f0d060", "name": "Buttercup" },
+      { "hex": "#e8b070", "name": "Apricot" },
+      { "hex": "#50b890", "name": "Türkis" },
+      { "hex": "#c8a060", "name": "Kamel" },
+      { "hex": "#f8e090", "name": "Vanille" },
+      { "hex": "#a0d890", "name": "Hellgrün" },
+      { "hex": "#d89060", "name": "Terrakotta-hell" }
+    ],
+    "avoid": [
+      { "hex": "#1a1a2e", "name": "Schwarz" },
+      { "hex": "#4a7fa5", "name": "Stahlblau" },
+      { "hex": "#9a8aa0", "name": "Mauve" },
+      { "hex": "#6a2a3a", "name": "Burgund" },
+      { "hex": "#3a3a4a", "name": "Anthrazit" },
+      { "hex": "#7a3a5a", "name": "Pflaume" },
+      { "hex": "#4a4a6a", "name": "Grauviolett" },
+      { "hex": "#2a4a2a", "name": "Dunkelgrün" }
+    ]
+  },
+  "spring_clear": {
+    "name": "Klarer Frühling",
+    "season": "Frühling",
+    "gradient": "conic-gradient(#f06070,#f5a030,#40c8a0,#5090e0,#f06070)",
+    "desc": "Heller Hautton · Meist dunkles Haar · Klare Augen",
+    "good": [
+      { "hex": "#f06070", "name": "Korallenrot" },
+      { "hex": "#f5a030", "name": "Mandarine" },
+      { "hex": "#40c8a0", "name": "Smaragd-hell" },
+      { "hex": "#5090e0", "name": "Kobaltblau" },
+      { "hex": "#f0d040", "name": "Zitronengelb" },
+      { "hex": "#e050a0", "name": "Fuchsia" },
+      { "hex": "#50c8e0", "name": "Aqua" },
+      { "hex": "#f08030", "name": "Orange" },
+      { "hex": "#80d060", "name": "Apfelgrün" },
+      { "hex": "#f0f0e0", "name": "Reinweiß" },
+      { "hex": "#e07060", "name": "Wassermelone" },
+      { "hex": "#60a0f0", "name": "Hellblau" }
+    ],
+    "avoid": [
+      { "hex": "#8a9eaa", "name": "Silbergrau" },
+      { "hex": "#b0a8b8", "name": "Lavendel" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#7a8a3a", "name": "Olive" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#8a7a6a", "name": "Warmgrau" },
+      { "hex": "#5a6a5a", "name": "Dunstgrün" },
+      { "hex": "#9a8a7a", "name": "Beigegrau" }
+    ]
+  },
+  "summer_light": {
+    "name": "Heller Sommer",
+    "season": "Sommer",
+    "gradient": "conic-gradient(#d8e8f0,#c0d4e8,#b0c8e0,#c8dced,#d8e8f0)",
+    "desc": "Sehr heller, kühler Hautton · Aschblondes Haar · Helle Augen",
+    "good": [
+      { "hex": "#d8e8f0", "name": "Eisblau-hell" },
+      { "hex": "#b0c8e0", "name": "Puderblau" },
+      { "hex": "#c0b8d0", "name": "Lavendel-hell" },
+      { "hex": "#d0c8d8", "name": "Flieder" },
+      { "hex": "#b8d0c0", "name": "Mintgrau" },
+      { "hex": "#e8e4e0", "name": "Off-White" },
+      { "hex": "#c8d0d8", "name": "Hellgrau" },
+      { "hex": "#d0b8c0", "name": "Rosé" },
+      { "hex": "#a0b8c8", "name": "Taubenblau" },
+      { "hex": "#c8b8c8", "name": "Orchidee" },
+      { "hex": "#b0c0b0", "name": "Salbei" },
+      { "hex": "#d8c8b8", "name": "Elfenbein" }
+    ],
+    "avoid": [
+      { "hex": "#e8d040", "name": "Gelb" },
+      { "hex": "#f5a030", "name": "Orange" },
+      { "hex": "#d4622a", "name": "Rost" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#7a4a2a", "name": "Schokobraun" },
+      { "hex": "#c8860a", "name": "Senf" },
+      { "hex": "#d4956a", "name": "Lachs-warm" },
+      { "hex": "#a09060", "name": "Khaki" }
+    ]
+  },
+  "summer_cool": {
+    "name": "Kühler Sommer",
+    "season": "Sommer",
+    "gradient": "conic-gradient(#4a7fa5,#6e9ab8,#8fb8cc,#b0c4d4,#7b9db5,#4a7fa5)",
+    "desc": "Heller Hautton · rosig-kühler Undertone · Asch-braunes Haar · Stahlblaue Augen",
+    "good": [
+      { "hex": "#4a7fa5", "name": "Stahlblau" },
+      { "hex": "#a8c4d8", "name": "Eisblau" },
+      { "hex": "#7fa8ba", "name": "Taubenblau" },
+      { "hex": "#8a9eaa", "name": "Silbergrau" },
+      { "hex": "#4a8a8a", "name": "Petrol" },
+      { "hex": "#b0a8b8", "name": "Lavendel" },
+      { "hex": "#9a8aa0", "name": "Mauve" },
+      { "hex": "#e0dcd8", "name": "Off-White" },
+      { "hex": "#1a2e4a", "name": "Navy" },
+      { "hex": "#1a1a2e", "name": "Mitternacht" },
+      { "hex": "#6a2a3a", "name": "Burgund" },
+      { "hex": "#3a3a4a", "name": "Anthrazit" }
+    ],
+    "avoid": [
+      { "hex": "#c8860a", "name": "Senf" },
+      { "hex": "#d4622a", "name": "Orange" },
+      { "hex": "#b85a3a", "name": "Terrakotta" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#7a8a3a", "name": "Olive" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#e8d040", "name": "Gelb" },
+      { "hex": "#7a4a2a", "name": "Schokobraun" },
+      { "hex": "#e05a30", "name": "Rost" },
+      { "hex": "#d4956a", "name": "Lachs-warm" }
+    ]
+  },
+  "summer_soft": {
+    "name": "Softer Sommer",
+    "season": "Sommer",
+    "gradient": "conic-gradient(#b0a8b8,#c0b8c8,#a8b8c0,#b8c8c8,#b0a8b8)",
+    "desc": "Mittlerer, kühler Hautton · Aschbraunes Haar · Gedämpfte Augen",
+    "good": [
+      { "hex": "#b0a8b8", "name": "Lavendel-grau" },
+      { "hex": "#9ab0b8", "name": "Blaugrau" },
+      { "hex": "#a8b8a8", "name": "Salbeigrau" },
+      { "hex": "#c0b0a8", "name": "Roségold-matt" },
+      { "hex": "#8898a8", "name": "Taubenblau" },
+      { "hex": "#b8a8a0", "name": "Altrosa" },
+      { "hex": "#a0a8b0", "name": "Silber" },
+      { "hex": "#c0c8c0", "name": "Mintgrau" },
+      { "hex": "#988898", "name": "Malve" },
+      { "hex": "#d0c8c0", "name": "Beige-kühl" },
+      { "hex": "#889898", "name": "Schiefer" },
+      { "hex": "#b8b0b8", "name": "Flieder" }
+    ],
+    "avoid": [
+      { "hex": "#f5a030", "name": "Orange" },
+      { "hex": "#e8d040", "name": "Gelb" },
+      { "hex": "#d4622a", "name": "Rost" },
+      { "hex": "#1a1a2e", "name": "Schwarz" },
+      { "hex": "#c8860a", "name": "Senf" },
+      { "hex": "#7a4a2a", "name": "Schokobraun" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#f06070", "name": "Knallrot" }
+    ]
+  },
+  "autumn_soft": {
+    "name": "Softer Herbst",
+    "season": "Herbst",
+    "gradient": "conic-gradient(#c8946a,#b87848,#a86838,#c0a870,#c8946a)",
+    "desc": "Mittlerer, warm-neutraler Hautton · Dunkelblondes Haar · Weiche Augen",
+    "good": [
+      { "hex": "#c8946a", "name": "Lachs" },
+      { "hex": "#b87848", "name": "Kupfer" },
+      { "hex": "#c8a870", "name": "Goldbeige" },
+      { "hex": "#a87858", "name": "Karamell" },
+      { "hex": "#88a870", "name": "Salbei" },
+      { "hex": "#d0b888", "name": "Sand" },
+      { "hex": "#b09870", "name": "Khaki-warm" },
+      { "hex": "#786858", "name": "Taupe" },
+      { "hex": "#a0b888", "name": "Olivgrün" },
+      { "hex": "#c89868", "name": "Apricot-warm" },
+      { "hex": "#988068", "name": "Haselnuss" },
+      { "hex": "#b0c898", "name": "Helloliv" }
+    ],
+    "avoid": [
+      { "hex": "#1a1a2e", "name": "Schwarz" },
+      { "hex": "#4a7fa5", "name": "Eisblau" },
+      { "hex": "#9a8aa0", "name": "Lavendel" },
+      { "hex": "#e0dcd8", "name": "Off-White" },
+      { "hex": "#ff60a0", "name": "Neonpink" },
+      { "hex": "#5090e0", "name": "Kobaltblau" },
+      { "hex": "#e8e4e0", "name": "Reinweiß" },
+      { "hex": "#7060a0", "name": "Violett" }
+    ]
+  },
+  "autumn_warm": {
+    "name": "Warmer Herbst",
+    "season": "Herbst",
+    "gradient": "conic-gradient(#c84820,#d06828,#b85018,#d08040,#c84820)",
+    "desc": "Warmer, goldener Hautton · Kupferrotes oder dunkelbraunes Haar",
+    "good": [
+      { "hex": "#c84820", "name": "Ziegelrot" },
+      { "hex": "#d06828", "name": "Rost-warm" },
+      { "hex": "#d08040", "name": "Ocker" },
+      { "hex": "#a06820", "name": "Schokolade" },
+      { "hex": "#607840", "name": "Moosgrün" },
+      { "hex": "#c89040", "name": "Goldgelb" },
+      { "hex": "#804020", "name": "Mahagoni" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#506040", "name": "Olivgrün" },
+      { "hex": "#d0a060", "name": "Kamel" },
+      { "hex": "#903020", "name": "Burgund-warm" },
+      { "hex": "#b07840", "name": "Bronze" }
+    ],
+    "avoid": [
+      { "hex": "#4a7fa5", "name": "Stahlblau" },
+      { "hex": "#9a8aa0", "name": "Mauve" },
+      { "hex": "#e0dcd8", "name": "Off-White" },
+      { "hex": "#1a2e4a", "name": "Marineblau" },
+      { "hex": "#c0b8d0", "name": "Lavendel" },
+      { "hex": "#80b0d0", "name": "Hellblau" },
+      { "hex": "#e8e4f0", "name": "Weiß-kühl" },
+      { "hex": "#a0a8c0", "name": "Graublau" }
+    ]
+  },
+  "autumn_deep": {
+    "name": "Tiefer Herbst",
+    "season": "Herbst",
+    "gradient": "conic-gradient(#602810,#804020,#a05030,#703818,#602810)",
+    "desc": "Tiefer, dunkler Hautton · Dunkles Haar · Intensive Augen",
+    "good": [
+      { "hex": "#602810", "name": "Dunkelrost" },
+      { "hex": "#804020", "name": "Mahagoni" },
+      { "hex": "#506030", "name": "Dunkeloliv" },
+      { "hex": "#403018", "name": "Espresso" },
+      { "hex": "#804818", "name": "Kupfer-dunkel" },
+      { "hex": "#607030", "name": "Waldgrün" },
+      { "hex": "#902818", "name": "Dunkelrot" },
+      { "hex": "#a07030", "name": "Bronze" },
+      { "hex": "#304820", "name": "Flaschengrün" },
+      { "hex": "#703018", "name": "Schokobraun" },
+      { "hex": "#b08040", "name": "Ocker" },
+      { "hex": "#503828", "name": "Taupe-dunkel" }
+    ],
+    "avoid": [
+      { "hex": "#e8e4e0", "name": "Off-White" },
+      { "hex": "#a8c4d8", "name": "Eisblau" },
+      { "hex": "#f9d89c", "name": "Pastellgelb" },
+      { "hex": "#d0c8d8", "name": "Flieder" },
+      { "hex": "#e0dcd8", "name": "Reinweiß" },
+      { "hex": "#c0d4e8", "name": "Puderblau" },
+      { "hex": "#f5c0c0", "name": "Hellrosa" },
+      { "hex": "#c8e8d0", "name": "Mintcreme" }
+    ]
+  },
+  "winter_cool": {
+    "name": "Kühler Winter",
+    "season": "Winter",
+    "gradient": "conic-gradient(#c0d8f0,#a0c0e8,#80a8d8,#b0c8e8,#c0d8f0)",
+    "desc": "Heller, kühler Hautton · Aschblondes Haar · Klare, kühle Augen",
+    "good": [
+      { "hex": "#c0d8f0", "name": "Eisblau-hell" },
+      { "hex": "#80a8d8", "name": "Cornflower" },
+      { "hex": "#e8e8f8", "name": "Reinweiß" },
+      { "hex": "#a0b0d0", "name": "Lavendelblau" },
+      { "hex": "#d0e0f0", "name": "Puderblau" },
+      { "hex": "#c0c8e0", "name": "Frostblau" },
+      { "hex": "#c8d0e8", "name": "Eisgrau" },
+      { "hex": "#e0d8f0", "name": "Flieder-hell" },
+      { "hex": "#1a2e4a", "name": "Navy" },
+      { "hex": "#b0c0d8", "name": "Stahlblau-hell" },
+      { "hex": "#d8d0e8", "name": "Lavendel" },
+      { "hex": "#3a3a5a", "name": "Indigoblau" }
+    ],
+    "avoid": [
+      { "hex": "#c8860a", "name": "Senf" },
+      { "hex": "#d4622a", "name": "Orange" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#d4956a", "name": "Lachs-warm" },
+      { "hex": "#b87848", "name": "Kupfer" },
+      { "hex": "#c8946a", "name": "Apricot" },
+      { "hex": "#c8a870", "name": "Goldbeige" }
+    ]
+  },
+  "winter_deep": {
+    "name": "Tiefer Winter",
+    "season": "Winter",
+    "gradient": "conic-gradient(#101828,#1a2840,#0a1020,#182030,#101828)",
+    "desc": "Dunkler, kühler Hautton · Dunkles Haar · Tiefe, intensive Augen",
+    "good": [
+      { "hex": "#101828", "name": "Mitternacht" },
+      { "hex": "#1a2840", "name": "Tintenschwarz" },
+      { "hex": "#e8e8f8", "name": "Reinweiß" },
+      { "hex": "#c01828", "name": "Signalrot" },
+      { "hex": "#200828", "name": "Dunkelviolett" },
+      { "hex": "#083060", "name": "Königsblau" },
+      { "hex": "#181828", "name": "Anthrazit" },
+      { "hex": "#c82038", "name": "Kirschrot" },
+      { "hex": "#083848", "name": "Petrol-dunkel" },
+      { "hex": "#281838", "name": "Pflaume" },
+      { "hex": "#0a3020", "name": "Smaragd" },
+      { "hex": "#383848", "name": "Dunkelgrau" }
+    ],
+    "avoid": [
+      { "hex": "#f9d89c", "name": "Pastellgelb" },
+      { "hex": "#c8946a", "name": "Apricot" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#b87848", "name": "Kupfer" },
+      { "hex": "#c8a870", "name": "Goldbeige" },
+      { "hex": "#d4956a", "name": "Lachs" },
+      { "hex": "#c8860a", "name": "Senf" }
+    ]
+  },
+  "winter_clear": {
+    "name": "Klarer Winter",
+    "season": "Winter",
+    "gradient": "conic-gradient(#e01830,#0830c0,#10c0a0,#c010a0,#e01830)",
+    "desc": "Heller bis mittlerer, kühler Hautton · Dunkles Haar · Sehr klare Augen",
+    "good": [
+      { "hex": "#e01830", "name": "Signalrot" },
+      { "hex": "#0830c0", "name": "Kobaltblau" },
+      { "hex": "#10c0a0", "name": "Smaragd" },
+      { "hex": "#c010a0", "name": "Magenta" },
+      { "hex": "#e8e8f8", "name": "Reinweiß" },
+      { "hex": "#080810", "name": "Schwarz" },
+      { "hex": "#e0d000", "name": "Zitronengelb" },
+      { "hex": "#0890e0", "name": "Türkis-klar" },
+      { "hex": "#c02890", "name": "Pink-klar" },
+      { "hex": "#1040a0", "name": "Marineblau" },
+      { "hex": "#28c060", "name": "Frühlingsgrün" },
+      { "hex": "#a00828", "name": "Dunkelrot" }
+    ],
+    "avoid": [
+      { "hex": "#c8946a", "name": "Apricot" },
+      { "hex": "#c49a4a", "name": "Camel" },
+      { "hex": "#b0a8b8", "name": "Lavendel-grau" },
+      { "hex": "#a09060", "name": "Khaki" },
+      { "hex": "#8a9eaa", "name": "Silbergrau" },
+      { "hex": "#c8860a", "name": "Senf" },
+      { "hex": "#d4956a", "name": "Lachs" },
+      { "hex": "#9a8a7a", "name": "Warmbeige" }
+    ]
+  }
+}

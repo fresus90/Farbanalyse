@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Persönliche Farbanalyse</title>
+  <script type="module" src="/src/main.js"></script>
+</head>
+<body>
+
+<!-- ════ LIVE CAMERA ════ -->
+<div id="liveCameraModal">
+  <div class="cam-wrap">
+    <video id="camVideo" autoplay playsinline muted></video>
+    <svg id="camOverlay" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <mask id="ovalMask">
+          <rect width="100" height="100" fill="white"/>
+          <ellipse cx="50" cy="46" rx="36" ry="44" fill="black"/>
+        </mask>
+      </defs>
+      <rect width="100" height="100" fill="rgba(0,0,0,0.55)" mask="url(#ovalMask)"/>
+      <ellipse cx="50" cy="46" rx="36" ry="44" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="0.6" stroke-dasharray="3 2"/>
+      <line x1="16" y1="35" x2="84" y2="35" stroke="rgba(255,255,255,0.3)" stroke-width="0.4" stroke-dasharray="2 2"/>
+      <text x="50" y="33.5" text-anchor="middle" font-size="4" fill="rgba(255,255,255,0.45)" font-family="sans-serif">Augen</text>
+      <line x1="50" y1="4" x2="50" y2="88" stroke="rgba(255,255,255,0.15)" stroke-width="0.3"/>
+      <line x1="14" y1="46" x2="86" y2="46" stroke="rgba(255,255,255,0.15)" stroke-width="0.3"/>
+      <path d="M5 18 L5 8 L15 8" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M85 8 L95 8 L95 18" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M5 82 L5 92 L15 92" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M95 82 L95 92 L85 92" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
+    </svg>
+    <button class="cam-flip" title="Kamera wechseln">🔄</button>
+  </div>
+  <div class="cam-bar">
+    <button class="cam-cancel">Abbrechen</button>
+    <button class="cam-shutter" title="Foto aufnehmen">
+      <div class="cam-shutter-inner"></div>
+    </button>
+    <div class="cam-hint">Tippe zum Auslösen</div>
+  </div>
+</div>
+
+<!-- ════ VIEW MODE ════ -->
+<div id="viewMode" style="display:none;max-width:420px;margin:0 auto;">
+  <div class="stage-border">
+    <div class="stage" id="stage">
+      <div id="colorBg"></div>
+      <div id="uploadZone">
+        <div class="upload-icon">＋</div>
+        <div class="upload-text">Foto hochladen</div>
+        <div class="upload-sub">JPG oder PNG · Klicken oder ziehen</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:rgba(74,127,165,.1);border:1px solid rgba(74,127,165,.25);border-radius:20px;padding:3px 10px;">
+          <span style="font-size:.7rem;">📷</span>
+          <span style="font-size:.58rem;color:#7ab0cc;letter-spacing:.06em;">Foto-Tipps ansehen</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <input type="checkbox" id="skipBgRemoval" style="accent-color:#4a7fa5;width:14px;height:14px;">
+          <label for="skipBgRemoval" style="font-size:.6rem;color:#5a7a8a;letter-spacing:.06em;cursor:pointer;">Ohne Freistellen laden</label>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <div id="procOverlay">
+        <div class="spinner"></div>
+        <div class="proc-text">Hintergrund wird entfernt…</div>
+      </div>
+      <img id="faceImg" alt="Freigestellt">
+      <div id="activeLabel"></div>
+    </div>
+  </div>
+  <div class="view-actions" id="viewActions" style="display:none">
+    <button class="btn btn-ghost" id="editBtn">✏️ Nachbessern</button>
+    <button class="btn btn-ghost" id="compareBtn">⚖️ Vergleichen</button>
+    <button class="btn btn-danger" id="resetBtn">✕ Entfernen</button>
+  </div>
+  <div class="palette-section" id="palettesWrap" style="display:none">
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Deine Bestfarben</div><div class="section-line"></div></div>
+    <div class="badge badge-good">✓ Klicke auf eine Farbe zum Ausprobieren</div>
+    <div class="swatches" id="goodSwatches"></div>
+  </div>
+  <div class="palette-section avoid-section" id="avoidPaletteWrap" style="display:none">
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Farben vermeiden</div><div class="section-line"></div></div>
+    <div class="badge badge-avoid">✕ Diese Farben dämpfen deinen Typ</div>
+    <div class="swatches" id="avoidSwatches"></div>
+  </div>
+</div>
+
+<!-- ════ COMPARE MODE ════ -->
+<div id="compareMode" style="display:none;max-width:520px;margin:0 auto 32px;">
+  <div class="compare-stage-wrap">
+    <div class="compare-stage" id="cmpStage">
+      <div id="cmpBgLeft"></div>
+      <div id="cmpBgRight"></div>
+      <div id="cmpGradLeft"></div>
+      <div id="cmpGradRight"></div>
+      <img id="cmpFaceImg" alt="Vergleich">
+      <div id="cmpDivider"></div>
+      <div class="cmp-label" id="cmpLabelLeft">Links</div>
+      <div class="cmp-label" id="cmpLabelRight">Rechts</div>
+    </div>
+  </div>
+  <div class="compare-controls">
+    <div class="cmp-side left">
+      <div class="cmp-side-title">◀ Linke Seite</div>
+      <select class="cmp-select" id="cmpTypeLeft">
+        <option value="">– Farbtyp wählen –</option>
+      </select>
+      <div class="gradient-toggle">
+        <input type="checkbox" id="cmpGradToggleLeft">
+        <label for="cmpGradToggleLeft">Palette als Verlauf</label>
+      </div>
+      <div class="cmp-swatches" id="cmpSwatchesLeft"></div>
+    </div>
+    <div class="cmp-side right">
+      <div class="cmp-side-title">Rechte Seite ▶</div>
+      <select class="cmp-select" id="cmpTypeRight">
+        <option value="">– Farbtyp wählen –</option>
+      </select>
+      <div class="gradient-toggle">
+        <input type="checkbox" id="cmpGradToggleRight">
+        <label for="cmpGradToggleRight">Palette als Verlauf</label>
+      </div>
+      <div class="cmp-swatches" id="cmpSwatchesRight"></div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;margin-top:4px;">
+    <button class="btn btn-ghost">✕ Vergleich schließen</button>
+  </div>
+</div>
+
+<!-- Type Selector -->
+<div class="type-selector" id="typeSelectorWrap" style="display:none;max-width:520px;margin:0 auto 20px;">
+  <label>Farbtyp auswählen</label>
+  <select class="type-dropdown" id="typeDropdown">
+    <optgroup label="🌸 Frühling (warm · hell · klar)">
+      <option value="spring_light">Heller Frühling – Hell, warm, leicht</option>
+      <option value="spring_warm">Warmer Frühling – Warm, golden, leuchtend</option>
+      <option value="spring_clear">Klarer Frühling – Klar, warm, kontrastreich</option>
+    </optgroup>
+    <optgroup label="☀️ Sommer (kühl · gedämpft · weich)">
+      <option value="summer_light">Heller Sommer – Hell, kühl, zart</option>
+      <option value="summer_cool" selected>Kühler Sommer – Kühl, weich, mittel ← Dein Typ</option>
+      <option value="summer_soft">Softer Sommer – Gedämpft, kühl, weich</option>
+    </optgroup>
+    <optgroup label="🍂 Herbst (warm · tief · gedämpft)">
+      <option value="autumn_soft">Softer Herbst – Warm, gedämpft, weich</option>
+      <option value="autumn_warm">Warmer Herbst – Warm, reich, tief</option>
+      <option value="autumn_deep">Tiefer Herbst – Dunkel, warm, intensiv</option>
+    </optgroup>
+    <optgroup label="❄️ Winter (kühl · klar · kontrastreich)">
+      <option value="winter_cool">Kühler Winter – Kühl, klar, hell</option>
+      <option value="winter_deep">Tiefer Winter – Dunkel, kühl, kontrastreich</option>
+      <option value="winter_clear">Klarer Winter – Klar, kühl, lebendig</option>
+    </optgroup>
+  </select>
+</div>
+<div class="type-card" id="typeCard" style="display:none;max-width:520px;margin:0 auto 28px;">
+  <div class="type-icon" id="typeIcon"></div>
+  <div>
+    <div class="type-label" id="typeLabel">Dein Farbtyp</div>
+    <div class="type-name" id="typeName">Kühler Sommer</div>
+    <div class="type-desc" id="typeDesc">Heller Hautton · rosig-kühler Undertone · Asch-braunes Haar · Stahlblaue Augen</div>
+  </div>
+</div>
+
+<!-- ════ EDIT MODE ════ -->
+<div id="editMode">
+  <div class="edit-tabs">
+    <button class="tab active" id="tabCrop">✂️ Beschneiden</button>
+    <button class="tab" id="tabTouchup">✨ Freistellen</button>
+  </div>
+
+  <!-- CROP -->
+  <div id="cropPanel">
+    <div id="cropWrap">
+      <img id="cropSourceImg" alt="">
+      <div id="cropBox">
+        <div class="crop-handle" id="h-tl"></div>
+        <div class="crop-handle" id="h-tr"></div>
+        <div class="crop-handle" id="h-bl"></div>
+        <div class="crop-handle" id="h-br"></div>
+      </div>
+    </div>
+    <p class="panel-hint">Ziehe den Rahmen oder die Ecken um den Ausschnitt anzupassen</p>
+  </div>
+
+  <!-- SMART TOUCH-UP -->
+  <div id="touchupPanel">
+    <div class="tu-toolbar">
+      <button class="tool-btn active" id="btnRestore">↩ Wiederherstellen</button>
+      <button class="tool-btn erase" id="btnErase">✕ Löschen</button>
+      <div class="sep"></div>
+      <button class="tool-btn" id="btnUndo" style="opacity:.35" disabled>⌫ Rückgängig</button>
+      <div class="sep"></div>
+      <button class="tool-btn" id="btnOriginal">⟳ Original</button>
+      <div class="sep"></div>
+      <label class="sl">Pinselgröße <input type="range" id="tuStrength" min="10" max="80" value="35"></label>
+    </div>
+    <div id="touchupWrap">
+      <canvas id="touchupCanvas"></canvas>
+      <canvas id="cursorCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;transform-origin:0 0;"></canvas>
+    </div>
+    <p class="panel-hint">
+      Klicken oder ziehen zum Löschen / Wiederherstellen · Zwei Finger zum Zoomen · Rückgängig per Button oder Strg+Z
+    </p>
+  </div>
+
+  <div class="edit-actions">
+    <button class="btn btn-ghost">Abbrechen</button>
+    <button class="btn btn-primary">✓ Übernehmen</button>
+  </div>
+</div>
+
+<canvas id="workCanvas"></canvas>
+
+<!-- ════ CAMERA GUIDE MODAL ════ -->
+<div id="cameraGuide">
+  <div class="guide-card">
+    <div class="guide-header">
+      <span class="guide-title">📷 Optimales Foto aufnehmen</span>
+      <button class="guide-close">✕</button>
+    </div>
+
+    <!-- Oval face frame -->
+    <div class="guide-viewfinder">
+      <svg viewBox="0 0 200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="260" fill="#0f1117"/>
+        <ellipse cx="100" cy="118" rx="72" ry="95" fill="#1e2a38"/>
+        <ellipse cx="100" cy="118" rx="72" ry="95" stroke="#4a7fa5" stroke-width="2" stroke-dasharray="6 4"/>
+        <line x1="100" y1="30" x2="100" y2="206" stroke="#4a7fa5" stroke-width="1" stroke-dasharray="4 4" opacity=".4"/>
+        <line x1="28" y1="118" x2="172" y2="118" stroke="#4a7fa5" stroke-width="1" stroke-dasharray="4 4" opacity=".4"/>
+        <line x1="38" y1="92" x2="162" y2="92" stroke="#7ab0cc" stroke-width="1" opacity=".5"/>
+        <text x="100" y="89" text-anchor="middle" font-size="8" fill="#7ab0cc" opacity=".7" font-family="DM Sans,sans-serif">Augenlinie</text>
+        <line x1="55" y1="195" x2="145" y2="195" stroke="#7ab0cc" stroke-width="1" opacity=".4"/>
+        <text x="100" y="210" text-anchor="middle" font-size="8" fill="#7ab0cc" opacity=".6" font-family="DM Sans,sans-serif">Kinn hier</text>
+        <path d="M10 50 L10 10 L50 10" stroke="#4a7fa5" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M150 10 L190 10 L190 50" stroke="#4a7fa5" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10 210 L10 250 L50 250" stroke="#4a7fa5" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M190 210 L190 250 L150 250" stroke="#4a7fa5" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <p style="text-align:center;font-size:.6rem;color:#4a6a7a;margin:-2px 0 4px;letter-spacing:.08em;text-transform:uppercase;">
+      Gesicht innerhalb des Rahmens positionieren
+    </p>
+
+    <!-- Tips -->
+    <div class="guide-tips">
+      <div class="tip">
+        <div class="tip-icon">☀️</div>
+        <div class="tip-text"><strong>Tageslicht</strong>Stelle dich vor ein Fenster – natürliches Licht von vorne ist ideal</div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">🎨</div>
+        <div class="tip-text"><strong>Hintergrund</strong>Einfarbige, helle Wand – möglichst wenig Kontrast zum Hintergrund</div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">💄</div>
+        <div class="tip-text"><strong>Kein Make-up</strong>Natürlicher Teint für präzise Farbanalyse – Foundation vermeiden</div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">📐</div>
+        <div class="tip-text"><strong>Gerader Blick</strong>Kamera auf Augenhöhe halten, nicht von unten oder oben fotografieren</div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">🌫️</div>
+        <div class="tip-text"><strong>Kein Flash</strong>Blitzlicht verändert Hauttöne stark – nur natürliches Licht</div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">👕</div>
+        <div class="tip-text"><strong>Neutrales Oberteil</strong>Weiß, Grau oder Schwarz – damit Farben nicht reflektieren</div>
+      </div>
+    </div>
+
+    <!-- Quick checklist -->
+    <div class="guide-checklist">
+      <div class="check-item">Haare zurück</div>
+      <div class="check-item">Brille abnehmen</div>
+      <div class="check-item">Gute Beleuchtung</div>
+      <div class="check-item">Kamera = Augenhöhe</div>
+    </div>
+
+    <div class="guide-actions">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-ghost">🖼 Datei wählen</button>
+      <button class="btn btn-primary">📷 Kamera</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

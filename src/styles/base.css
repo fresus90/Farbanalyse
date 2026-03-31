@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Base ── */
+body {
+  background: #0f1117;
+  color: #e8e4df;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding: 28px 16px 60px;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  text-align: center;
+  letter-spacing: .04em;
+  color: #d4cfc9;
+  margin-bottom: 3px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: .75rem;
+  color: #7a8a9a;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #2a3a4a;
+  color: #5a7a9a;
+}
+.btn-ghost:hover { border-color: #4a7fa5; color: #8ab8d4; }
+
+.btn-primary { background: #4a7fa5; color: #fff; }
+.btn-primary:hover { background: #5a8fb5; }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid #4a2a2a;
+  color: #a06060;
+}
+.btn-danger:hover { background: rgba(180,60,60,.2); color: #d08080; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  font-size: .54rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 20px;
+  margin-bottom: 9px;
+}
+.badge-good {
+  background: rgba(74,127,165,.15);
+  color: #7ab0cc;
+  border: 1px solid rgba(74,127,165,.3);
+}
+.badge-avoid {
+  background: rgba(180,80,60,.12);
+  color: #c07878;
+  border: 1px solid rgba(180,80,60,.25);
+}
+
+/* ── Utility ── */
+canvas#workCanvas { display: none; }
+
+/* ── Animations ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rip { from { opacity: 1; transform: scale(.1); } to { opacity: 0; transform: scale(1); } }
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #2a3a4a;
+  border-top-color: #4a7fa5;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  border: 2px solid rgba(255,255,255,.7);
+  animation: rip .4s ease-out forwards;
+}

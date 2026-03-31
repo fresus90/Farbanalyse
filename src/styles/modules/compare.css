@@ -1,0 +1,84 @@
+/* ════ COMPARE MODE ════ */
+#compareMode { display: none; max-width: 520px; margin: 0 auto 32px; }
+
+.compare-stage-wrap {
+  position: relative; border-radius: 12px; padding: 3px;
+  background: linear-gradient(135deg, #4a7fa5, #6e9ab8, #b0c4d4, #556f8a, #4a7fa5);
+  box-shadow: 0 0 28px rgba(74,127,165,.25); margin-bottom: 14px;
+}
+.compare-stage {
+  border-radius: 10px; overflow: hidden; position: relative;
+  width: 100%; aspect-ratio: 3/4;
+  cursor: ew-resize; user-select: none; touch-action: none;
+}
+
+/* Left / right background halves */
+#cmpBgLeft  { position: absolute; inset: 0; right: 50%; transition: background .3s; }
+#cmpBgRight { position: absolute; inset: 0; left: 50%; transition: background .3s; }
+
+/* Gradient overlays */
+#cmpGradLeft  { position: absolute; inset: 0; right: 50%; opacity: 0; transition: opacity .3s; }
+#cmpGradRight { position: absolute; inset: 0; left: 50%; opacity: 0; transition: opacity .3s; }
+
+/* Face on top */
+#cmpFaceImg {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 92%; max-height: 98%; object-fit: contain; object-position: bottom center; z-index: 3;
+}
+
+/* Divider */
+#cmpDivider {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 3px;
+  background: #fff; z-index: 5; transform: translateX(-50%); cursor: ew-resize;
+}
+#cmpDivider::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+#cmpDivider::after {
+  content: '◀ ▶'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: .55rem; color: #555; letter-spacing: -.05em; line-height: 1;
+  pointer-events: none;
+}
+
+/* Labels */
+.cmp-label {
+  position: absolute; top: 10px; z-index: 6;
+  background: rgba(15,17,23,.72); backdrop-filter: blur(8px);
+  border-radius: 20px; padding: 3px 12px;
+  font-size: .58rem; letter-spacing: .1em; text-transform: uppercase;
+  color: #9db8cc; white-space: nowrap;
+}
+#cmpLabelLeft  { left: 10px; }
+#cmpLabelRight { right: 10px; }
+
+/* Controls */
+.compare-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.cmp-side { background: #181b22; border: 1px solid #2a2e38; border-radius: 8px; padding: 10px 12px; }
+.cmp-side-title { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: #5a7a8a; margin-bottom: 8px; }
+.cmp-side.left .cmp-side-title  { color: #7ab0cc; }
+.cmp-side.right .cmp-side-title { color: #c07878; }
+
+.cmp-select {
+  width: 100%; padding: 6px 8px; border-radius: 6px;
+  background: #0f1117; border: 1px solid #2a3a4a; color: #c8d8e4;
+  font-family: 'DM Sans', sans-serif; font-size: .68rem; cursor: pointer; margin-bottom: 6px;
+}
+.cmp-select:focus { outline: none; border-color: #4a7fa5; }
+
+/* Small swatches in compare */
+.cmp-swatches { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.cmp-swatch {
+  width: 22px; height: 22px; border-radius: 3px; cursor: pointer;
+  transition: transform .15s; border: 1px solid rgba(255,255,255,.08);
+}
+.cmp-swatch:hover { transform: scale(1.2); z-index: 1; }
+.cmp-swatch.active { box-shadow: 0 0 0 2px #fff; transform: scale(1.15); }
+
+/* Gradient toggle */
+.gradient-toggle { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.gradient-toggle input { accent-color: #4a7fa5; }
+.gradient-toggle label { font-size: .58rem; color: #5a7a8a; cursor: pointer; }

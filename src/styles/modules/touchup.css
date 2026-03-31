@@ -1,0 +1,48 @@
+/* ════ SMART TOUCH-UP ════ */
+#touchupPanel { display: none; }
+
+#touchupWrap {
+  position: relative; width: 100%; border-radius: 8px; overflow: hidden;
+  background: repeating-conic-gradient(#1e2230 0% 25%, #262b38 0% 50%) 0 0 / 20px 20px;
+  touch-action: none;
+}
+#touchupWrap canvas { position: absolute; top: 0; left: 0; }
+#touchupCanvas { display: block; width: 100%; cursor: crosshair; }
+
+.tu-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+  background: #181b22; border: 1px solid #2a2e38; border-radius: 8px; padding: 10px 12px;
+}
+.tool-btn {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: .64rem; letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; border: 1px solid #2a3a4a;
+  background: transparent; color: #7a9ab0; transition: all .18s;
+}
+.tool-btn.active { background: #4a7fa5; color: #fff; border-color: #4a7fa5; }
+.tool-btn.erase.active { background: #a05050; border-color: #a05050; color: #fff; }
+
+.sep { width: 1px; height: 20px; background: #2a2e38; margin: 0 2px; }
+
+label.sl {
+  font-size: .58rem; color: #5a7a8a; letter-spacing: .06em;
+  text-transform: uppercase; display: flex; align-items: center; gap: 4px;
+}
+input[type=range] { width: 68px; accent-color: #4a7fa5; }
+
+/* ── Edit Mode Container ── */
+#editMode { display: none; max-width: 520px; margin: 0 auto; }
+
+.edit-tabs {
+  display: flex; margin-bottom: 16px;
+  border: 1px solid #2a2e38; border-radius: 8px; overflow: hidden;
+}
+.tab {
+  flex: 1; padding: 9px; text-align: center;
+  font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; background: #181b22; color: #5a7a8a;
+  transition: all .18s; border: none;
+}
+.tab.active { background: #4a7fa5; color: #fff; }
+
+.edit-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }

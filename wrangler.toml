@@ -1,0 +1,9 @@
+name = "farbanalyse"
+compatibility_date = "2024-09-01"
+
+# Cloudflare Pages – Build-Konfiguration
+# Build command: npm run build
+# Build output directory: dist
+
+[site]
+bucket = "./dist"
