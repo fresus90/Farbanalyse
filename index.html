@@ -30,11 +30,11 @@
       <path d="M5 82 L5 92 L15 92" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
       <path d="M95 82 L95 92 L85 92" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
     </svg>
-    <button class="cam-flip" title="Kamera wechseln">🔄</button>
+    <button class="cam-flip" id="camFlipBtn" title="Kamera wechseln">🔄</button>
   </div>
   <div class="cam-bar">
-    <button class="cam-cancel">Abbrechen</button>
-    <button class="cam-shutter" title="Foto aufnehmen">
+    <button class="cam-cancel" id="camCancelBtn">Abbrechen</button>
+    <button class="cam-shutter" id="camShutterBtn" title="Foto aufnehmen">
       <div class="cam-shutter-inner"></div>
     </button>
     <div class="cam-hint">Tippe zum Auslösen</div>
@@ -124,7 +124,7 @@
     </div>
   </div>
   <div style="display:flex;justify-content:center;margin-top:4px;">
-    <button class="btn btn-ghost">✕ Vergleich schließen</button>
+    <button class="btn btn-ghost" id="closeCmpBtn">✕ Vergleich schließen</button>
   </div>
 </div>
 
@@ -206,8 +206,8 @@
   </div>
 
   <div class="edit-actions">
-    <button class="btn btn-ghost">Abbrechen</button>
-    <button class="btn btn-primary">✓ Übernehmen</button>
+    <button class="btn btn-ghost" id="cancelEditBtn">Abbrechen</button>
+    <button class="btn btn-primary" id="applyEditBtn">✓ Übernehmen</button>
   </div>
 </div>
 
@@ -218,7 +218,7 @@
   <div class="guide-card">
     <div class="guide-header">
       <span class="guide-title">📷 Optimales Foto aufnehmen</span>
-      <button class="guide-close">✕</button>
+      <button class="guide-close" id="guideCloseBtn">✕</button>
     </div>
 
     <!-- Oval face frame -->
@@ -280,9 +280,9 @@
     </div>
 
     <div class="guide-actions">
-      <button class="btn btn-ghost">Abbrechen</button>
-      <button class="btn btn-ghost">🖼 Datei wählen</button>
-      <button class="btn btn-primary">📷 Kamera</button>
+      <button class="btn btn-ghost" id="guideCancelBtn">Abbrechen</button>
+      <button class="btn btn-ghost" id="guideFileBtn">🖼 Datei wählen</button>
+      <button class="btn btn-primary" id="guideCameraBtn">📷 Kamera</button>
     </div>
   </div>
 </div>
