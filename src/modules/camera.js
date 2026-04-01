@@ -148,30 +148,25 @@ export function initCamera() {
   document.addEventListener('open-guide', openGuide);
 
   // Guide-Buttons
-  const closeBtn = document.querySelector('.guide-close');
+  const closeBtn = $('guideCloseBtn');
   if (closeBtn) closeBtn.addEventListener('click', closeGuide);
 
-  // Kamera-Buttons im Guide
-  const guideCameraBtn = document.querySelector('.guide-actions .btn-primary');
+  const guideCameraBtn = $('guideCameraBtn');
   if (guideCameraBtn) guideCameraBtn.addEventListener('click', openLiveCamera);
 
-  const guideFileBtn = document.querySelectorAll('.guide-actions .btn-ghost');
-  guideFileBtn.forEach(btn => {
-    if (btn.textContent.includes('Datei')) {
-      btn.addEventListener('click', confirmGuide);
-    }
-    if (btn.textContent.includes('Abbrechen')) {
-      btn.addEventListener('click', closeGuide);
-    }
-  });
+  const guideFileBtn = $('guideFileBtn');
+  if (guideFileBtn) guideFileBtn.addEventListener('click', confirmGuide);
+
+  const guideCancelBtn = $('guideCancelBtn');
+  if (guideCancelBtn) guideCancelBtn.addEventListener('click', closeGuide);
 
   // Live-Kamera Buttons
-  const flipBtn = document.querySelector('.cam-flip');
+  const flipBtn = $('camFlipBtn');
   if (flipBtn) flipBtn.addEventListener('click', flipCamera);
 
-  const shutterBtn = document.querySelector('.cam-shutter');
+  const shutterBtn = $('camShutterBtn');
   if (shutterBtn) shutterBtn.addEventListener('click', capturePhoto);
 
-  const cancelBtn = document.querySelector('.cam-cancel');
+  const cancelBtn = $('camCancelBtn');
   if (cancelBtn) cancelBtn.addEventListener('click', closeLiveCamera);
 }
