@@ -117,8 +117,8 @@ function init() {
   if (tabTouchup) tabTouchup.addEventListener('click', () => switchTab('touchup'));
 
   // Edit actions
-  const cancelEditBtn = document.querySelector('.edit-actions .btn-ghost');
-  const applyEditBtn = document.querySelector('.edit-actions .btn-primary');
+  const cancelEditBtn = $('cancelEditBtn');
+  const applyEditBtn = $('applyEditBtn');
   if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
   if (applyEditBtn) applyEditBtn.addEventListener('click', applyEdit);
 
@@ -126,14 +126,15 @@ function init() {
   const btnRestore = $('btnRestore');
   const btnErase = $('btnErase');
   const btnUndo = $('btnUndo');
-  const btnOriginal = document.querySelector('#touchupPanel .tool-btn:last-of-type');
+  const btnOriginal = $('btnOriginal');
 
   if (btnRestore) btnRestore.addEventListener('click', () => setTool('restore'));
   if (btnErase)   btnErase.addEventListener('click', () => setTool('erase'));
   if (btnUndo)    btnUndo.addEventListener('click', doUndo);
+  if (btnOriginal) btnOriginal.addEventListener('click', resetToOriginal);
 
   // Compare close button
-  const closeCmpBtn = document.querySelector('#compareMode .btn-ghost');
+  const closeCmpBtn = $('closeCmpBtn');
   if (closeCmpBtn) closeCmpBtn.addEventListener('click', closeCompare);
 
   // Default Farbtyp laden
