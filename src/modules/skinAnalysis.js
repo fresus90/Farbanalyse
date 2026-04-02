@@ -29,13 +29,14 @@ let isInitialized = false;
 export async function initSkinAnalysis() {
   if (isInitialized) return;
 
-  const { FaceLandmarker, FilesetResolver } = await import(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs'
-  );
+  // MediaPipe Vision Tasks via CDN laden
+  // Nutzt @latest um Versionsprobleme zu vermeiden
+  const VISION_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest';
 
-  const vision = await FilesetResolver.forVisionTasks(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
-  );
+  const module = await import(/* @vite-ignore */ `${VISION_CDN}/vision_bundle.mjs`);
+  const { FaceLandmarker, FilesetResolver } = module;
+
+  const vision = await FilesetResolver.forVisionTasks(`${VISION_CDN}/wasm`);
 
   faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
     baseOptions: {
