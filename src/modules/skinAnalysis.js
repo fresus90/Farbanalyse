@@ -394,6 +394,7 @@ export async function analyzeSkin(imageEl) {
   }
 
   const result = faceLandmarker.detect(imageEl);
+  console.log('[skinAnalysis v2] Face detected:', !!result.faceLandmarks?.length, 'landmarks:', result.faceLandmarks?.[0]?.length);
   if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
     return { success: false, error: 'Kein Gesicht erkannt.' };
   }
