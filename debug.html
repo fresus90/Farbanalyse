@@ -3,207 +3,499 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farbanalyse — Debug & Kalibrierung</title>
+<title>Farbanalyse — Debug v3</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#0a0c12; color:#c8d0d8; font-family:'DM Sans',sans-serif; min-height:100vh; padding:20px 16px 60px; }
-  .debug-header { max-width:960px; margin:0 auto 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-  .debug-header h1 { font-family:'Playfair Display',serif; font-size:1.3rem; color:#d4cfc9; }
-  .tag { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:#e8a040; background:rgba(232,160,64,.1); border:1px solid rgba(232,160,64,.25); border-radius:20px; padding:3px 10px; }
-  .upload-area { max-width:960px; margin:0 auto 16px; border:2px dashed #2a3a4a; border-radius:12px; padding:24px; text-align:center; cursor:pointer; transition:all .2s; }
-  .upload-area:hover,.upload-area.drag-over { border-color:#4a7fa5; background:rgba(74,127,165,.05); }
-  .upload-area .icon { font-size:1.6rem; color:#3a5a78; margin-bottom:6px; }
-  .upload-area .text { font-size:.8rem; color:#6a8a9a; }
-  .upload-area .sub { font-size:.6rem; color:#3a5a6a; margin-top:3px; }
-  .upload-area input { display:none; }
-  #status { max-width:960px; margin:0 auto 14px; font-size:.7rem; color:#5a7a8a; letter-spacing:.04em; min-height:18px; }
-  #status.loading { color:#4a7fa5; } #status.error { color:#c07878; } #status.success { color:#6aaa7a; }
-  .grid { max-width:960px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media(max-width:680px) { .grid { grid-template-columns:1fr; } }
-  .panel { background:#12161e; border:1px solid #1e2a38; border-radius:10px; overflow:hidden; }
-  .ph { padding:9px 14px; border-bottom:1px solid #1a2230; font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:#4a7fa5; background:#0e1218; }
-  .pb { padding:12px 14px; }
-  .full { grid-column:1/-1; }
-  .mr { display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1a2230; }
-  .mr:last-child { border-bottom:none; }
-  .ml { font-size:.66rem; color:#6a8a9a; display:flex; align-items:center; gap:5px; }
-  .ml .h { font-size:.52rem; color:#3a5a6a; }
-  .mv { font-family:'JetBrains Mono',monospace; font-size:.74rem; color:#c8d8e4; font-weight:500; }
-  .mv.warm { color:#e8a860; } .mv.cool { color:#7ab0cc; } .mv.soft { color:#a0a8b8; }
-  .swatch-row { display:flex; align-items:center; gap:10px; padding:8px 0; }
-  .swatch-circle { width:40px; height:40px; border-radius:50%; border:2px solid #2a3a4a; flex-shrink:0; }
-  .swatch-info { font-family:'JetBrains Mono',monospace; font-size:.64rem; color:#8a9eaa; line-height:1.5; }
-  .swatch-label { font-size:.56rem; color:#4a6a7a; letter-spacing:.1em; text-transform:uppercase; margin-bottom:2px; }
-  .si { padding:6px 0; border-bottom:1px solid #1a2230; }
-  .si:last-child { border-bottom:none; }
-  .st { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
-  .sn { font-size:.66rem; color:#8a9eaa; }
-  .sn .rk { display:inline-block; width:18px; height:18px; line-height:18px; text-align:center; border-radius:50%; font-size:.5rem; font-weight:600; margin-right:5px; }
-  .rk.g { background:#4a7fa5; color:#fff; } .rk.s { background:#2a3a4a; color:#8a9eaa; }
-  .sp { font-family:'JetBrains Mono',monospace; font-size:.66rem; color:#c8d8e4; }
-  .sb { height:4px; background:#1a2230; border-radius:2px; overflow:hidden; }
-  .sf { height:100%; border-radius:2px; transition:width .5s cubic-bezier(.4,0,.2,1); }
-  .sf.t { background:linear-gradient(90deg,#4a7fa5,#7ab8d4); } .sf.r { background:#2a4a5a; }
-  .fits { display:flex; gap:6px; margin-top:2px; flex-wrap:wrap; }
-  .fit { font-size:.48rem; color:#4a6a7a; letter-spacing:.03em; }
-  .cb { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:8px; font-size:.68rem; font-weight:500; margin-top:8px; }
-  .cb.hi { background:rgba(106,170,122,.15); color:#6aaa7a; border:1px solid rgba(106,170,122,.3); }
-  .cb.md { background:rgba(232,160,64,.12); color:#e8a040; border:1px solid rgba(232,160,64,.25); }
-  .cb.lo { background:rgba(192,120,120,.12); color:#c07878; border:1px solid rgba(192,120,120,.25); }
-  .empty { text-align:center; padding:30px 16px; color:#3a5a6a; font-size:.7rem; }
-  .trio { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-  @media(max-width:680px) { .trio { grid-template-columns:1fr; } }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#0a0c12;color:#c8d0d8;font-family:'DM Sans',sans-serif;min-height:100vh;padding:20px 16px 60px;}
+  .hdr{max-width:960px;margin:0 auto 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .hdr h1{font-family:'Playfair Display',serif;font-size:1.2rem;color:#d4cfc9;}
+  .tag{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#e8a040;background:rgba(232,160,64,.1);border:1px solid rgba(232,160,64,.25);border-radius:20px;padding:3px 10px;}
+  .upload{max-width:960px;margin:0 auto 14px;border:2px dashed #2a3a4a;border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;}
+  .upload:hover,.upload.drag-over{border-color:#4a7fa5;background:rgba(74,127,165,.05);}
+  .upload .ic{font-size:1.5rem;color:#3a5a78;margin-bottom:4px;}
+  .upload .tx{font-size:.78rem;color:#6a8a9a;}
+  .upload .su{font-size:.58rem;color:#3a5a6a;margin-top:3px;}
+  .upload input{display:none;}
+  #status{max-width:960px;margin:0 auto 12px;font-size:.68rem;color:#5a7a8a;min-height:16px;}
+  #status.loading{color:#4a7fa5;}#status.error{color:#c07878;}#status.success{color:#6aaa7a;}
+
+  /* ── Bild-Container mit Markern ── */
+  .img-wrap{position:relative;max-width:520px;margin:0 auto 14px;background:#0e1218;border-radius:10px;overflow:hidden;user-select:none;touch-action:none;}
+  .img-wrap img{display:block;width:100%;}
+
+  /* Marker (draggbar + resizebar) */
+  .marker{position:absolute;border:2px solid;border-radius:4px;cursor:move;min-width:20px;min-height:20px;display:flex;align-items:flex-start;justify-content:flex-start;}
+  .marker .lbl{font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:0 0 4px 0;pointer-events:none;font-weight:600;}
+  .marker .resize{position:absolute;bottom:-5px;right:-5px;width:12px;height:12px;border-radius:2px;cursor:se-resize;border:2px solid;}
+  .marker.skin{border-color:rgba(74,127,165,.8);background:rgba(74,127,165,.15);}
+  .marker.skin .lbl{background:rgba(74,127,165,.8);color:#fff;}
+  .marker.skin .resize{background:rgba(74,127,165,.8);border-color:#fff;}
+  .marker.hair{border-color:rgba(180,130,60,.8);background:rgba(180,130,60,.15);}
+  .marker.hair .lbl{background:rgba(180,130,60,.8);color:#fff;}
+  .marker.hair .resize{background:rgba(180,130,60,.8);border-color:#fff;}
+  .marker.iris{border-color:rgba(100,180,100,.8);background:rgba(100,180,100,.15);}
+  .marker.iris .lbl{background:rgba(100,180,100,.8);color:#fff;}
+  .marker.iris .resize{background:rgba(100,180,100,.8);border-color:#fff;}
+
+  .actions{max-width:520px;margin:0 auto 14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.7rem;letter-spacing:.06em;cursor:pointer;border:none;transition:all .2s;}
+  .btn-primary{background:#4a7fa5;color:#fff;}.btn-primary:hover{background:#5a8fb5;}
+  .btn-ghost{background:transparent;border:1px solid #2a3a4a;color:#5a7a9a;}.btn-ghost:hover{border-color:#4a7fa5;color:#8ab8d4;}
+  .hint{max-width:520px;margin:0 auto 14px;font-size:.6rem;color:#3a5a6a;text-align:center;line-height:1.5;}
+
+  /* ── Ergebnis-Panels ── */
+  .grid{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:680px){.grid{grid-template-columns:1fr;}}
+  .panel{background:#12161e;border:1px solid #1e2a38;border-radius:10px;overflow:hidden;}
+  .ph{padding:8px 12px;border-bottom:1px solid #1a2230;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#4a7fa5;background:#0e1218;}
+  .pb{padding:10px 12px;}
+  .full{grid-column:1/-1;}
+  .mr{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a2230;}
+  .mr:last-child{border-bottom:none;}
+  .ml{font-size:.64rem;color:#6a8a9a;display:flex;align-items:center;gap:4px;}
+  .ml .h{font-size:.5rem;color:#3a5a6a;}
+  .mv{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#c8d8e4;font-weight:500;}
+  .mv.warm{color:#e8a860;}.mv.cool{color:#7ab0cc;}.mv.soft{color:#a0a8b8;}
+  .sw-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
+  .sw-circ{width:36px;height:36px;border-radius:50%;border:2px solid #2a3a4a;flex-shrink:0;}
+  .sw-info{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#8a9eaa;line-height:1.5;}
+  .sw-lbl{font-size:.52rem;color:#4a6a7a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1px;}
+  .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media(max-width:680px){.trio{grid-template-columns:1fr;}}
+  .si{padding:5px 0;border-bottom:1px solid #1a2230;}.si:last-child{border-bottom:none;}
+  .st{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+  .sn{font-size:.64rem;color:#8a9eaa;}.sn .rk{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;font-size:.48rem;font-weight:600;margin-right:4px;}
+  .rk.g{background:#4a7fa5;color:#fff;}.rk.s{background:#2a3a4a;color:#8a9eaa;}
+  .sp{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:#c8d8e4;}
+  .sb{height:3px;background:#1a2230;border-radius:2px;overflow:hidden;}
+  .sf{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+  .sf.t{background:linear-gradient(90deg,#4a7fa5,#7ab8d4);}.sf.r{background:#2a4a5a;}
+  .fits{display:flex;gap:5px;margin-top:2px;flex-wrap:wrap;}
+  .fit{font-size:.46rem;color:#4a6a7a;}
+  .cb{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:.64rem;font-weight:500;margin-top:6px;}
+  .cb.hi{background:rgba(106,170,122,.15);color:#6aaa7a;border:1px solid rgba(106,170,122,.3);}
+  .cb.md{background:rgba(232,160,64,.12);color:#e8a040;border:1px solid rgba(232,160,64,.25);}
+  .cb.lo{background:rgba(192,120,120,.12);color:#c07878;border:1px solid rgba(192,120,120,.25);}
+  .empty{text-align:center;padding:24px 14px;color:#3a5a6a;font-size:.68rem;}
 </style>
 </head>
 <body>
 
-<div class="debug-header">
-  <h1>🔬 Erscheinungsbild-Analyse Debug</h1>
-  <span class="tag">v2 — Haut + Haar + Iris</span>
+<div class="hdr">
+  <h1>🔬 Erscheinungsbild-Analyse</h1>
+  <span class="tag">v3 — Verschiebbare Marker</span>
 </div>
 
-<div class="upload-area" id="uploadArea">
-  <div class="icon">＋</div>
-  <div class="text">Foto laden zum Analysieren</div>
-  <div class="sub">JPG oder PNG · Klicken oder ziehen</div>
+<div class="upload" id="uploadArea">
+  <div class="ic">＋</div>
+  <div class="tx">Foto laden</div>
+  <div class="su">JPG oder PNG · Klicken oder ziehen</div>
   <input type="file" id="fileInput" accept="image/*">
 </div>
 <div id="status"></div>
 
-<div id="results" style="display:none;">
-  <!-- Bild + Regionen -->
-  <div class="grid" style="margin-bottom:14px;">
-    <div class="panel">
-      <div class="ph">Foto + Sampling-Regionen</div>
-      <div class="pb"><canvas id="debugCanvas" style="width:100%;border-radius:6px;display:block;"></canvas></div>
-    </div>
-    <div class="panel">
-      <div class="ph">Features (6 Dimensionen)</div>
-      <div class="pb" id="featuresPanel"><div class="empty">…</div></div>
-    </div>
-  </div>
+<!-- Bild + Marker -->
+<div class="img-wrap" id="imgWrap" style="display:none;">
+  <img id="photo" alt="">
+  <!-- Marker werden dynamisch eingefügt -->
+</div>
+<div class="actions" id="actionBar" style="display:none;">
+  <button class="btn btn-primary" id="reanalyzeBtn">🔄 Neu analysieren</button>
+  <button class="btn btn-ghost" id="resetMarkersBtn">↩ Marker zurücksetzen</button>
+</div>
+<div class="hint" id="markerHint" style="display:none;">
+  Ziehe die farbigen Rechtecke auf die richtige Stelle · Ecke unten rechts zum Skalieren · Dann «Neu analysieren»
+</div>
 
-  <!-- Haut / Haar / Iris Swatches -->
-  <div class="trio" style="margin-bottom:14px;">
+<!-- Ergebnisse -->
+<div id="results" style="display:none;">
+  <div class="trio" style="margin-bottom:12px;">
     <div class="panel"><div class="ph">🎨 Haut</div><div class="pb" id="skinPanel"><div class="empty">…</div></div></div>
     <div class="panel"><div class="ph">💇 Haar</div><div class="pb" id="hairPanel"><div class="empty">…</div></div></div>
     <div class="panel"><div class="ph">👁 Iris</div><div class="pb" id="irisPanel"><div class="empty">…</div></div></div>
   </div>
-
-  <!-- Scores -->
-  <div class="grid">
-    <div class="panel full">
-      <div class="ph">Farbtyp-Scores (Top 6)</div>
-      <div class="pb" id="scoresPanel"><div class="empty">…</div></div>
-    </div>
+  <div class="grid" style="margin-bottom:12px;">
+    <div class="panel"><div class="ph">Features</div><div class="pb" id="featuresPanel"><div class="empty">…</div></div></div>
+    <div class="panel"><div class="ph">Farbtyp-Scores (Top 6)</div><div class="pb" id="scoresPanel"><div class="empty">…</div></div></div>
   </div>
 </div>
 
-<img id="sourceImg" style="display:none;">
+<img id="sourceImg" style="display:none;" crossorigin="anonymous">
 
 <script type="module">
-import { analyzeSkin, initSkinAnalysis, debugDrawRegions, labToRgb } from './src/modules/skinAnalysis.js';
+import { initSkinAnalysis, analyzeSkin, labToRgb } from './src/modules/skinAnalysis.js?v=3';
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const status = document.getElementById('status');
-const results = document.getElementById('results');
+const imgWrap = document.getElementById('imgWrap');
+const photo = document.getElementById('photo');
 const sourceImg = document.getElementById('sourceImg');
+const results = document.getElementById('results');
+const actionBar = document.getElementById('actionBar');
+const markerHint = document.getElementById('markerHint');
 
+// ── Marker State ──
+const markers = {};
+let imgNatW = 0, imgNatH = 0;
+
+// ── Upload ──
 uploadArea.addEventListener('click', () => fileInput.click());
 uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
 uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) processFile(f); });
-fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
+uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) loadFile(f); });
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+document.getElementById('reanalyzeBtn').addEventListener('click', reanalyze);
+document.getElementById('resetMarkersBtn').addEventListener('click', resetMarkers);
 
-function setStatus(msg, type = '') { status.textContent = msg; status.className = type; }
+function setStatus(msg, cls = '') { status.textContent = msg; status.className = cls; }
 
-async function processFile(file) {
-  setStatus('⏳ Bild wird geladen…', 'loading');
+function loadFile(file) {
+  setStatus('⏳ Laden…', 'loading');
   results.style.display = 'none';
   const reader = new FileReader();
-  reader.onload = e => { sourceImg.src = e.target.result; sourceImg.onload = () => runAnalysis(); };
+  reader.onload = e => {
+    sourceImg.src = e.target.result;
+    photo.src = e.target.result;
+    sourceImg.onload = () => { imgNatW = sourceImg.naturalWidth; imgNatH = sourceImg.naturalHeight; runInitialAnalysis(); };
+  };
   reader.readAsDataURL(file);
 }
 
-async function runAnalysis() {
+// ── Initiale Analyse (mit Auto-Markern) ──
+async function runInitialAnalysis() {
   try {
     setStatus('⏳ MediaPipe laden…', 'loading');
     await initSkinAnalysis();
-    setStatus('⏳ Haut + Haar + Iris analysieren…', 'loading');
+    setStatus('⏳ Analysiere Haut + Haar + Iris…', 'loading');
     const r = await analyzeSkin(sourceImg);
     if (!r.success) { setStatus('✗ ' + r.error, 'error'); return; }
 
-    setStatus(`✓ ${r.skin.pixelCount} Haut / ${r.hair.pixelCount} Haar / ${r.iris.pixelCount} Iris px — Top: ${r.scores[0].name}`, 'success');
-    results.style.display = 'block';
+    imgWrap.style.display = 'block';
+    actionBar.style.display = 'flex';
+    markerHint.style.display = 'block';
 
-    debugDrawRegions(sourceImg, document.getElementById('debugCanvas'));
-    renderFeatures(r.features);
-    renderRegion('skinPanel', 'Haut', r.skin);
-    renderRegion('hairPanel', 'Haar', r.hair);
-    renderRegion('irisPanel', 'Iris', r.iris);
-    renderScores(r.scores, r.topConfidence);
+    // Auto-Marker aus MediaPipe-Ergebnis platzieren
+    placeAutoMarkers(r);
+    displayResults(r);
+    setStatus(`✓ Auto-Analyse: ${r.scores[0].name} — Marker bei Bedarf verschieben`, 'success');
   } catch (err) { setStatus('✗ ' + err.message, 'error'); console.error(err); }
 }
 
+// ── Marker platzieren (prozentual relativ zum Bild) ──
+function placeAutoMarkers(r) {
+  // Bestehende Marker entfernen
+  imgWrap.querySelectorAll('.marker').forEach(m => m.remove());
+
+  // Haut-Marker: Mitte des Gesichts, untere Hälfte
+  createMarker('skin', 'Haut', 30, 40, 40, 25);
+
+  // Haar-Marker: oben, basierend auf Haar-Sampling-Bereich
+  createMarker('hair', 'Haar', 25, 2, 50, 15);
+
+  // Iris-Marker: zwei kleine Kreise (wir machen Rechtecke, leichter zu bedienen)
+  createMarker('iris', 'Iris L', 30, 30, 12, 8);
+  createMarker('iris2', 'Iris R', 58, 30, 12, 8);
+}
+
+function createMarker(id, label, xPct, yPct, wPct, hPct) {
+  const el = document.createElement('div');
+  const typeClass = id.startsWith('iris') ? 'iris' : id;
+  el.className = `marker ${typeClass}`;
+  el.innerHTML = `<span class="lbl">${label}</span><div class="resize"></div>`;
+  el.style.left = xPct + '%';
+  el.style.top = yPct + '%';
+  el.style.width = wPct + '%';
+  el.style.height = hPct + '%';
+  el.dataset.id = id;
+
+  markers[id] = { el, x: xPct, y: yPct, w: wPct, h: hPct };
+  imgWrap.appendChild(el);
+  setupDrag(el, id);
+}
+
+// ── Drag & Resize Logic ──
+function setupDrag(el, id) {
+  let mode = null; // 'move' | 'resize'
+  let startX, startY, startLeft, startTop, startW, startH;
+
+  function getWrapRect() { return imgWrap.getBoundingClientRect(); }
+
+  function onStart(e) {
+    e.preventDefault();
+    const t = e.touches ? e.touches[0] : e;
+    const wr = getWrapRect();
+    startX = t.clientX;
+    startY = t.clientY;
+
+    if (e.target.classList.contains('resize')) {
+      mode = 'resize';
+      startW = el.offsetWidth;
+      startH = el.offsetHeight;
+    } else {
+      mode = 'move';
+      startLeft = el.offsetLeft;
+      startTop = el.offsetTop;
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  }
+
+  function onMove(e) {
+    e.preventDefault();
+    const t = e.touches ? e.touches[0] : e;
+    const wr = getWrapRect();
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (mode === 'move') {
+      const newLeft = Math.max(0, Math.min(wr.width - el.offsetWidth, startLeft + dx));
+      const newTop = Math.max(0, Math.min(wr.height - el.offsetHeight, startTop + dy));
+      el.style.left = (newLeft / wr.width * 100) + '%';
+      el.style.top = (newTop / wr.height * 100) + '%';
+    } else if (mode === 'resize') {
+      const newW = Math.max(20, startW + dx);
+      const newH = Math.max(15, startH + dy);
+      el.style.width = (newW / wr.width * 100) + '%';
+      el.style.height = (newH / wr.height * 100) + '%';
+    }
+  }
+
+  function onEnd() {
+    mode = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    // State aktualisieren
+    const wr = getWrapRect();
+    markers[id].x = parseFloat(el.style.left);
+    markers[id].y = parseFloat(el.style.top);
+    markers[id].w = parseFloat(el.style.width);
+    markers[id].h = parseFloat(el.style.height);
+  }
+
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, { passive: false });
+}
+
+function resetMarkers() {
+  // Dummy-Result für Auto-Platzierung
+  placeAutoMarkers({});
+}
+
+// ── Neu-Analyse mit manuellen Markern ──
+async function reanalyze() {
+  setStatus('⏳ Analysiere mit angepassten Markern…', 'loading');
+  try {
+    // Pixel aus den Marker-Regionen lesen
+    const canvas = document.createElement('canvas');
+    canvas.width = imgNatW;
+    canvas.height = imgNatH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(sourceImg, 0, 0, imgNatW, imgNatH);
+    const imgData = ctx.getImageData(0, 0, imgNatW, imgNatH).data;
+
+    function sampleRect(id) {
+      const m = markers[id];
+      if (!m) return [];
+      const x0 = Math.round(m.x / 100 * imgNatW);
+      const y0 = Math.round(m.y / 100 * imgNatH);
+      const w = Math.round(m.w / 100 * imgNatW);
+      const h = Math.round(m.h / 100 * imgNatH);
+      const pixels = [];
+      for (let y = y0; y < y0 + h && y < imgNatH; y++) {
+        for (let x = x0; x < x0 + w && x < imgNatW; x++) {
+          const idx = (y * imgNatW + x) * 4;
+          pixels.push([imgData[idx], imgData[idx + 1], imgData[idx + 2]]);
+        }
+      }
+      return pixels;
+    }
+
+    const skinPx = sampleRect('skin');
+    const hairPx = sampleRect('hair');
+    const irisPx = [...sampleRect('iris'), ...sampleRect('iris2')];
+
+    // In Lab umrechnen + Clustering
+    const skinLabs = skinPx.map(([r, g, b]) => rgbToLabLocal(r, g, b));
+    const hairLabs = hairPx.map(([r, g, b]) => rgbToLabLocal(r, g, b));
+    const irisLabs = irisPx.map(([r, g, b]) => rgbToLabLocal(r, g, b));
+
+    const skinLab = dominantLab(skinLabs);
+    const hairLab = dominantLab(hairLabs);
+    const irisLab = irisLabs.length > 3 ? avgLab(irisLabs) : null;
+
+    if (!skinLab) { setStatus('✗ Kein Hautton im Marker-Bereich', 'error'); return; }
+
+    // Features berechnen (gleiche Logik wie skinAnalysis.js)
+    const skinIta = Math.atan2(skinLab.L - 50, skinLab.b) * (180 / Math.PI);
+    const skinHue = (() => { let h = Math.atan2(skinLab.b, skinLab.a) * (180 / Math.PI); return h < 0 ? h + 360 : h; })();
+    const skinChroma = Math.sqrt(skinLab.a ** 2 + skinLab.b ** 2);
+
+    const hw = hairLab ? Math.max(0, Math.min(1, (hairLab.b - 5) / 25)) : 0.5;
+    const iw = irisLab ? Math.max(0, Math.min(1, ((irisLab.a + 5) / 25 + (irisLab.b + 5) / 30) / 2)) : 0.5;
+    const skinHairContrast = hairLab ? dE(skinLab, hairLab) : 25;
+    const skinWarmth = Math.max(0, Math.min(1, (skinHue - 25) / 55));
+    const overallWarmth = skinWarmth * 0.40 + hw * 0.35 + iw * 0.25;
+
+    const itaCat = skinIta > 55 ? 'very_light' : skinIta > 41 ? 'light' : skinIta > 28 ? 'intermediate' : skinIta > 10 ? 'tan' : skinIta > -30 ? 'brown' : 'dark';
+
+    const features = {
+      skinIta, skinHue, skinChroma, skinItaCategory: itaCat,
+      hairDepth: hairLab ? hairLab.L : 50, hairWarmth: hw, irisWarmth: iw,
+      skinHairContrast, skinIrisContrast: irisLab ? dE(skinLab, irisLab) : 20,
+      overallWarmth, skinWarmth
+    };
+
+    // Matching (importiert die Profile direkt)
+    const scores = matchLocal(features);
+
+    const result = {
+      success: true,
+      skin: { lab: skinLab, rgb: labToRgb(skinLab), pixelCount: skinPx.length },
+      hair: { lab: hairLab, rgb: hairLab ? labToRgb(hairLab) : null, pixelCount: hairPx.length },
+      iris: { lab: irisLab, rgb: irisLab ? labToRgb(irisLab) : null, pixelCount: irisPx.length },
+      features,
+      scores: scores.scores,
+      topType: scores.scores[0].key,
+      topConfidence: scores.confidence
+    };
+
+    displayResults(result);
+    setStatus(`✓ Manuelle Analyse: ${result.scores[0].name} (${result.topConfidence}% Confidence)`, 'success');
+  } catch (err) { setStatus('✗ ' + err.message, 'error'); console.error(err); }
+}
+
+// ── Lokale Hilfsfunktionen (Duplikate aus skinAnalysis.js für manuelle Analyse) ──
+
+function rgbToLabLocal(r, g, b) {
+  let rl = r / 255, gl = g / 255, bl = b / 255;
+  rl = rl > 0.04045 ? Math.pow((rl + 0.055) / 1.055, 2.4) : rl / 12.92;
+  gl = gl > 0.04045 ? Math.pow((gl + 0.055) / 1.055, 2.4) : gl / 12.92;
+  bl = bl > 0.04045 ? Math.pow((bl + 0.055) / 1.055, 2.4) : bl / 12.92;
+  let x = (0.4124564*rl + 0.3575761*gl + 0.1804375*bl) / 0.95047;
+  let y = 0.2126729*rl + 0.7151522*gl + 0.0721750*bl;
+  let z = (0.0193339*rl + 0.1191920*gl + 0.9503041*bl) / 1.08883;
+  const eps = 0.008856, kap = 903.3;
+  x = x > eps ? Math.cbrt(x) : (kap*x+16)/116;
+  y = y > eps ? Math.cbrt(y) : (kap*y+16)/116;
+  z = z > eps ? Math.cbrt(z) : (kap*z+16)/116;
+  return { L: 116*y-16, a: 500*(x-y), b: 200*(y-z) };
+}
+
+function dE(a, b) { return Math.sqrt((a.L-b.L)**2 + (a.a-b.a)**2 + (a.b-b.b)**2); }
+
+function avgLab(px) {
+  const s = px.reduce((a, p) => ({ L:a.L+p.L, a:a.a+p.a, b:a.b+p.b }), {L:0,a:0,b:0});
+  return { L:s.L/px.length, a:s.a/px.length, b:s.b/px.length };
+}
+
+function dominantLab(labs) {
+  if (!labs.length) return null;
+  if (labs.length < 10) return avgLab(labs);
+  // Simple k=2 means
+  let c1 = {...labs[0]}, c2 = {...labs[Math.floor(labs.length/2)]};
+  for (let iter = 0; iter < 15; iter++) {
+    let s1={L:0,a:0,b:0,n:0}, s2={L:0,a:0,b:0,n:0};
+    for (const p of labs) {
+      if (dE(p,c1) < dE(p,c2)) { s1.L+=p.L;s1.a+=p.a;s1.b+=p.b;s1.n++; }
+      else { s2.L+=p.L;s2.a+=p.a;s2.b+=p.b;s2.n++; }
+    }
+    if (s1.n) c1 = {L:s1.L/s1.n,a:s1.a/s1.n,b:s1.b/s1.n};
+    if (s2.n) c2 = {L:s2.L/s2.n,a:s2.a/s2.n,b:s2.b/s2.n};
+  }
+  // Zähle Zuweisungen
+  let n1=0,n2=0;
+  for (const p of labs) { if(dE(p,c1)<dE(p,c2))n1++;else n2++; }
+  return n1 >= n2 ? c1 : c2;
+}
+
+// TYPE_PROFILES (muss mit skinAnalysis.js synchron sein)
+const TP = {
+  spring_light:{skinIta:[40,78],skinHue:[50,80],hairDepth:[55,85],hairWarm:[.5,1],contrast:[10,35],warmth:[.55,.85],w:{skinIta:.15,skinHue:.15,hairDepth:.15,hairWarm:.2,contrast:.15,warmth:.2}},
+  spring_warm:{skinIta:[20,62],skinHue:[55,85],hairDepth:[35,70],hairWarm:[.6,1],contrast:[15,40],warmth:[.65,1],w:{skinIta:.1,skinHue:.15,hairDepth:.1,hairWarm:.25,contrast:.1,warmth:.3}},
+  spring_clear:{skinIta:[28,68],skinHue:[45,75],hairDepth:[20,65],hairWarm:[.4,.85],contrast:[35,70],warmth:[.5,.8],w:{skinIta:.1,skinHue:.15,hairDepth:.1,hairWarm:.15,contrast:.3,warmth:.2}},
+  summer_light:{skinIta:[42,80],skinHue:[30,58],hairDepth:[50,82],hairWarm:[.1,.45],contrast:[8,30],warmth:[.15,.42],w:{skinIta:.18,skinHue:.15,hairDepth:.18,hairWarm:.18,contrast:.13,warmth:.18}},
+  summer_cool:{skinIta:[28,68],skinHue:[25,55],hairDepth:[30,65],hairWarm:[.05,.4],contrast:[15,40],warmth:[.1,.38],w:{skinIta:.12,skinHue:.2,hairDepth:.1,hairWarm:.2,contrast:.1,warmth:.28}},
+  summer_soft:{skinIta:[22,60],skinHue:[32,62],hairDepth:[30,60],hairWarm:[.15,.5],contrast:[8,28],warmth:[.2,.48],w:{skinIta:.1,skinHue:.15,hairDepth:.1,hairWarm:.18,contrast:.27,warmth:.2}},
+  autumn_soft:{skinIta:[18,52],skinHue:[48,78],hairDepth:[28,58],hairWarm:[.35,.7],contrast:[8,28],warmth:[.42,.68],w:{skinIta:.1,skinHue:.15,hairDepth:.1,hairWarm:.18,contrast:.27,warmth:.2}},
+  autumn_warm:{skinIta:[5,42],skinHue:[55,85],hairDepth:[18,50],hairWarm:[.55,1],contrast:[15,42],warmth:[.6,1],w:{skinIta:.1,skinHue:.15,hairDepth:.1,hairWarm:.25,contrast:.1,warmth:.3}},
+  autumn_deep:{skinIta:[-30,25],skinHue:[50,80],hairDepth:[8,35],hairWarm:[.35,.8],contrast:[10,35],warmth:[.45,.78],w:{skinIta:.2,skinHue:.15,hairDepth:.2,hairWarm:.15,contrast:.1,warmth:.2}},
+  winter_cool:{skinIta:[32,72],skinHue:[22,52],hairDepth:[25,60],hairWarm:[0,.35],contrast:[25,55],warmth:[.05,.32],w:{skinIta:.12,skinHue:.18,hairDepth:.1,hairWarm:.18,contrast:.15,warmth:.27}},
+  winter_deep:{skinIta:[-35,22],skinHue:[25,58],hairDepth:[5,30],hairWarm:[.05,.4],contrast:[30,70],warmth:[.1,.38],w:{skinIta:.18,skinHue:.12,hairDepth:.2,hairWarm:.12,contrast:.23,warmth:.15}},
+  winter_clear:{skinIta:[22,65],skinHue:[22,52],hairDepth:[8,40],hairWarm:[0,.3],contrast:[38,75],warmth:[.05,.3],w:{skinIta:.08,skinHue:.15,hairDepth:.1,hairWarm:.15,contrast:.32,warmth:.2}}
+};
+const typeNames = {spring_light:'Heller Frühling',spring_warm:'Warmer Frühling',spring_clear:'Klarer Frühling',summer_light:'Heller Sommer',summer_cool:'Kühler Sommer',summer_soft:'Softer Sommer',autumn_soft:'Softer Herbst',autumn_warm:'Warmer Herbst',autumn_deep:'Tiefer Herbst',winter_cool:'Kühler Winter',winter_deep:'Tiefer Winter',winter_clear:'Klarer Winter'};
+const typeSeason = {spring_light:'Frühling',spring_warm:'Frühling',spring_clear:'Frühling',summer_light:'Sommer',summer_cool:'Sommer',summer_soft:'Sommer',autumn_soft:'Herbst',autumn_warm:'Herbst',autumn_deep:'Herbst',winter_cool:'Winter',winter_deep:'Winter',winter_clear:'Winter'};
+
+function rss(v, min, max) {
+  if (v>=min&&v<=max) return 1;
+  const hr=(max-min)/2, sig=hr*.7, d=v<min?min-v:v-max;
+  return Math.exp(-(d*d)/(2*sig*sig));
+}
+
+function matchLocal(f) {
+  const sc = [];
+  for (const [k,p] of Object.entries(TP)) {
+    const fi = {
+      skinIta:rss(f.skinIta,p.skinIta[0],p.skinIta[1]),
+      skinHue:rss(f.skinHue,p.skinHue[0],p.skinHue[1]),
+      hairDepth:rss(f.hairDepth,p.hairDepth[0],p.hairDepth[1]),
+      hairWarm:rss(f.hairWarmth,p.hairWarm[0],p.hairWarm[1]),
+      contrast:rss(f.skinHairContrast,p.contrast[0],p.contrast[1]),
+      warmth:rss(f.overallWarmth,p.warmth[0],p.warmth[1])
+    };
+    const score = fi.skinIta*p.w.skinIta+fi.skinHue*p.w.skinHue+fi.hairDepth*p.w.hairDepth+fi.hairWarm*p.w.hairWarm+fi.contrast*p.w.contrast+fi.warmth*p.w.warmth;
+    sc.push({key:k,name:typeNames[k],season:typeSeason[k],score:Math.round(score*1000)/1000,
+      fits:{skinIta:Math.round(fi.skinIta*100),skinHue:Math.round(fi.skinHue*100),hairDepth:Math.round(fi.hairDepth*100),hairWarm:Math.round(fi.hairWarm*100),contrast:Math.round(fi.contrast*100),warmth:Math.round(fi.warmth*100)}});
+  }
+  sc.sort((a,b)=>b.score-a.score);
+  const mx=sc[0].score;
+  if(mx>0)sc.forEach(s=>{s.pct=Math.round(s.score/mx*100);});
+  const conf=sc.length>=2&&mx>0?Math.round((sc[0].score-sc[1].score)/mx*100):100;
+  return {scores:sc,confidence:conf};
+}
+
+// ── Render ──
+function displayResults(r) {
+  results.style.display = 'block';
+  renderRegion('skinPanel', 'Haut', r.skin);
+  renderRegion('hairPanel', 'Haar', r.hair);
+  renderRegion('irisPanel', 'Iris', r.iris);
+  renderFeatures(r.features);
+  renderScores(r.scores, r.topConfidence);
+}
+
+function renderRegion(pid, label, d) {
+  const el = document.getElementById(pid);
+  if (!d.lab) { el.innerHTML = `<div class="empty">Kein ${label} (${d.pixelCount} px)</div>`; return; }
+  const rgb = d.rgb, hex = '#'+[rgb.r,rgb.g,rgb.b].map(v=>v.toString(16).padStart(2,'0')).join('');
+  el.innerHTML = `<div class="sw-row"><div class="sw-circ" style="background:${hex}"></div><div><div class="sw-lbl">${label} · ${d.pixelCount} px</div><div class="sw-info">L*=${d.lab.L.toFixed(1)} a*=${d.lab.a.toFixed(1)} b*=${d.lab.b.toFixed(1)}<br>${hex}</div></div></div>`;
+}
+
 function renderFeatures(f) {
-  const warmClass = f.overallWarmth > 0.55 ? 'warm' : f.overallWarmth < 0.38 ? 'cool' : 'soft';
-  const warmLabel = f.overallWarmth > 0.55 ? '→ warm' : f.overallWarmth < 0.38 ? '→ kühl' : '→ neutral';
+  const wc=f.overallWarmth>.55?'warm':f.overallWarmth<.38?'cool':'soft';
+  const wl=f.overallWarmth>.55?'→ warm':f.overallWarmth<.38?'→ kühl':'→ neutral';
+  const ic={very_light:'Sehr hell',light:'Hell',intermediate:'Mittel',tan:'Gebräunt',brown:'Braun',dark:'Dunkel'};
   document.getElementById('featuresPanel').innerHTML = `
-    <div class="mr"><span class="ml">Haut ITA <span class="h">(Helligkeit)</span></span><span class="mv">${f.skinIta.toFixed(1)}° → ${fmtIta(f.skinItaCategory)}</span></div>
-    <div class="mr"><span class="ml">Haut Hue <span class="h">(Farbton)</span></span><span class="mv ${f.skinHue > 60 ? 'warm' : f.skinHue < 48 ? 'cool' : ''}">${f.skinHue.toFixed(1)}°</span></div>
-    <div class="mr"><span class="ml">Haar L* <span class="h">(Helligkeit)</span></span><span class="mv">${f.hairDepth.toFixed(1)} ${f.hairDepth > 60 ? '→ hell' : f.hairDepth < 30 ? '→ dunkel' : '→ mittel'}</span></div>
-    <div class="mr"><span class="ml">Haar Wärme <span class="h">(golden↔asch)</span></span><span class="mv ${f.hairWarmth > 0.5 ? 'warm' : 'cool'}">${(f.hairWarmth * 100).toFixed(0)}% ${f.hairWarmth > 0.5 ? '→ golden' : '→ asch'}</span></div>
-    <div class="mr"><span class="ml">Kontrast <span class="h">(Haut↔Haar ΔE)</span></span><span class="mv">${f.skinHairContrast.toFixed(1)} ${f.skinHairContrast > 35 ? '→ hoch' : f.skinHairContrast < 18 ? '→ gering' : '→ mittel'}</span></div>
-    <div class="mr"><span class="ml">Gesamt-Wärme <span class="h">(40% Haut 35% Haar 25% Iris)</span></span><span class="mv ${warmClass}">${(f.overallWarmth * 100).toFixed(0)}% ${warmLabel}</span></div>
-  `;
+    <div class="mr"><span class="ml">ITA</span><span class="mv">${f.skinIta.toFixed(1)}° → ${ic[f.skinItaCategory]||f.skinItaCategory}</span></div>
+    <div class="mr"><span class="ml">Haut Hue</span><span class="mv ${f.skinHue>60?'warm':f.skinHue<48?'cool':''}">${f.skinHue.toFixed(1)}°</span></div>
+    <div class="mr"><span class="ml">Haar L*</span><span class="mv">${f.hairDepth.toFixed(1)}</span></div>
+    <div class="mr"><span class="ml">Haar Wärme</span><span class="mv ${f.hairWarmth>.5?'warm':'cool'}">${(f.hairWarmth*100).toFixed(0)}%</span></div>
+    <div class="mr"><span class="ml">Kontrast ΔE</span><span class="mv">${f.skinHairContrast.toFixed(1)}</span></div>
+    <div class="mr"><span class="ml">Ges. Wärme</span><span class="mv ${wc}">${(f.overallWarmth*100).toFixed(0)}% ${wl}</span></div>`;
 }
 
-function fmtIta(c) { return { very_light:'Sehr hell', light:'Hell', intermediate:'Mittel', tan:'Gebräunt', brown:'Braun', dark:'Dunkel' }[c] || c; }
-
-function renderRegion(panelId, label, data) {
-  const el = document.getElementById(panelId);
-  if (!data.lab) { el.innerHTML = `<div class="empty">Kein ${label} erkannt (${data.pixelCount} px)</div>`; return; }
-  const rgb = data.rgb;
-  const hex = '#' + [rgb.r, rgb.g, rgb.b].map(v => v.toString(16).padStart(2, '0')).join('');
-  el.innerHTML = `
-    <div class="swatch-row">
-      <div class="swatch-circle" style="background:${hex}"></div>
-      <div>
-        <div class="swatch-label">${label} · ${data.pixelCount} px</div>
-        <div class="swatch-info">
-          L*=${data.lab.L.toFixed(1)} a*=${data.lab.a.toFixed(1)} b*=${data.lab.b.toFixed(1)}<br>
-          ${hex}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderScores(scores, confidence) {
-  const top = scores.slice(0, 6);
-  let html = top.map((s, i) => `
-    <div class="si">
-      <div class="st">
-        <span class="sn"><span class="rk ${i === 0 ? 'g' : 's'}">${i + 1}</span>${s.name} <span style="color:#3a5a6a;font-size:.54rem;">(${s.season})</span></span>
-        <span class="sp">${s.pct || 0}%</span>
-      </div>
-      <div class="sb"><div class="sf ${i === 0 ? 't' : 'r'}" style="width:${s.pct || 0}%"></div></div>
-      <div class="fits">
-        <span class="fit">ITA:${s.fits.skinIta}%</span>
-        <span class="fit">Hue:${s.fits.skinHue}%</span>
-        <span class="fit">HaarL:${s.fits.hairDepth}%</span>
-        <span class="fit">HaarW:${s.fits.hairWarm}%</span>
-        <span class="fit">Kontr:${s.fits.contrast}%</span>
-        <span class="fit">Wärme:${s.fits.warmth}%</span>
-      </div>
-    </div>
-  `).join('');
-  const cc = confidence > 15 ? 'hi' : confidence > 8 ? 'md' : 'lo';
-  const cl = confidence > 15 ? 'Hohe Sicherheit' : confidence > 8 ? 'Mittlere Sicherheit' : 'Geringe Sicherheit — Quiz empfohlen';
-  html += `<div class="cb ${cc}">Confidence: ${confidence}% — ${cl}</div>`;
-  document.getElementById('scoresPanel').innerHTML = html;
+function renderScores(scores, conf) {
+  let h = scores.slice(0,6).map((s,i) => `<div class="si"><div class="st"><span class="sn"><span class="rk ${i?'s':'g'}">${i+1}</span>${s.name}</span><span class="sp">${s.pct||0}%</span></div><div class="sb"><div class="sf ${i?'r':'t'}" style="width:${s.pct||0}%"></div></div><div class="fits"><span class="fit">ITA:${s.fits.skinIta}%</span><span class="fit">Hue:${s.fits.skinHue}%</span><span class="fit">HL:${s.fits.hairDepth}%</span><span class="fit">HW:${s.fits.hairWarm}%</span><span class="fit">K:${s.fits.contrast}%</span><span class="fit">W:${s.fits.warmth}%</span></div></div>`).join('');
+  const cc=conf>15?'hi':conf>8?'md':'lo';
+  const cl=conf>15?'Hohe Sicherheit':conf>8?'Mittlere Sicherheit':'Geringe Sicherheit';
+  h+=`<div class="cb ${cc}">Confidence: ${conf}% — ${cl}</div>`;
+  document.getElementById('scoresPanel').innerHTML = h;
 }
 </script>
 </body>
