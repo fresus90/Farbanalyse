@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farbanalyse — Debug & Kalibrierung</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0c12;
+    color: #c8d0d8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+  }
+
+  .debug-header {
+    max-width: 900px; margin: 0 auto 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .debug-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; color: #d4cfc9; letter-spacing: .02em;
+  }
+  .debug-header .tag {
+    font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
+    color: #e8a040; background: rgba(232,160,64,.1);
+    border: 1px solid rgba(232,160,64,.25); border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  /* ── Upload ── */
+  .upload-area {
+    max-width: 900px; margin: 0 auto 20px;
+    border: 2px dashed #2a3a4a; border-radius: 12px;
+    padding: 28px; text-align: center;
+    cursor: pointer; transition: border-color .2s, background .2s;
+  }
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: #4a7fa5; background: rgba(74,127,165,.05);
+  }
+  .upload-area .icon { font-size: 1.8rem; color: #3a5a78; margin-bottom: 8px; }
+  .upload-area .text { font-size: .82rem; color: #6a8a9a; }
+  .upload-area .sub { font-size: .62rem; color: #3a5a6a; margin-top: 4px; }
+  .upload-area input { display: none; }
+
+  /* ── Status ── */
+  #status {
+    max-width: 900px; margin: 0 auto 16px;
+    font-size: .72rem; color: #5a7a8a; letter-spacing: .04em;
+    min-height: 20px;
+  }
+  #status.loading { color: #4a7fa5; }
+  #status.error { color: #c07878; }
+  #status.success { color: #6aaa7a; }
+
+  /* ── Grid Layout ── */
+  .debug-grid {
+    max-width: 900px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .debug-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #12161e; border: 1px solid #1e2a38;
+    border-radius: 10px; overflow: hidden;
+  }
+  .panel-head {
+    padding: 10px 14px; border-bottom: 1px solid #1a2230;
+    font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
+    color: #4a7fa5; background: #0e1218;
+  }
+  .panel-body { padding: 14px; }
+
+  /* ── Bild + Regionen ── */
+  .image-panel { grid-column: 1; }
+  .image-panel canvas, .image-panel img {
+    width: 100%; border-radius: 6px; display: block;
+  }
+
+  /* ── Metriken ── */
+  .metric-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid #1a2230;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label {
+    font-size: .68rem; color: #6a8a9a;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .metric-label .hint {
+    font-size: .54rem; color: #3a5a6a;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem; color: #c8d8e4; font-weight: 500;
+  }
+  .metric-value.warm { color: #e8a860; }
+  .metric-value.cool { color: #7ab0cc; }
+
+  /* ── Hautton-Swatch ── */
+  .skin-swatch {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  }
+  .skin-swatch .color-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid #2a3a4a; flex-shrink: 0;
+  }
+  .skin-swatch .lab-values {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; color: #8a9eaa; line-height: 1.6;
+  }
+
+  /* ── Score-Bars ── */
+  .score-item {
+    padding: 7px 0; border-bottom: 1px solid #1a2230;
+  }
+  .score-item:last-child { border-bottom: none; }
+  .score-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .score-name { font-size: .68rem; color: #8a9eaa; }
+  .score-name .rank {
+    display: inline-block; width: 18px; height: 18px; line-height: 18px;
+    text-align: center; border-radius: 50%; font-size: .52rem; font-weight: 600;
+    margin-right: 6px;
+  }
+  .score-name .rank.gold { background: #4a7fa5; color: #fff; }
+  .score-name .rank.silver { background: #2a3a4a; color: #8a9eaa; }
+  .score-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; color: #c8d8e4;
+  }
+  .score-bar-track {
+    height: 4px; background: #1a2230; border-radius: 2px; overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 2px;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+  .score-bar-fill.top { background: linear-gradient(90deg, #4a7fa5, #7ab8d4); }
+  .score-bar-fill.runner { background: #2a4a5a; }
+
+  .score-fits {
+    display: flex; gap: 8px; margin-top: 3px;
+  }
+  .score-fit {
+    font-size: .52rem; color: #4a6a7a; letter-spacing: .04em;
+  }
+
+  /* ── Cluster-Info ── */
+  .cluster-row {
+    display: flex; align-items: center; gap: 8px; padding: 5px 0;
+  }
+  .cluster-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.1); flex-shrink: 0;
+  }
+  .cluster-info {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .62rem; color: #6a8a9a;
+  }
+
+  /* ── Confidence Badge ── */
+  .confidence-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    font-size: .72rem; font-weight: 500; margin-top: 8px;
+  }
+  .confidence-badge.high { background: rgba(106,170,122,.15); color: #6aaa7a; border: 1px solid rgba(106,170,122,.3); }
+  .confidence-badge.medium { background: rgba(232,160,64,.12); color: #e8a040; border: 1px solid rgba(232,160,64,.25); }
+  .confidence-badge.low { background: rgba(192,120,120,.12); color: #c07878; border: 1px solid rgba(192,120,120,.25); }
+
+  /* ── Full-Width Panel ── */
+  .full-width { grid-column: 1 / -1; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: #3a5a6a; font-size: .72rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="debug-header">
+  <h1>🔬 Hautton-Analyse Debug</h1>
+  <span class="tag">Kalibrierungs-Tool</span>
+</div>
+
+<div class="upload-area" id="uploadArea">
+  <div class="icon">＋</div>
+  <div class="text">Foto laden zum Analysieren</div>
+  <div class="sub">JPG oder PNG · Klicken oder ziehen</div>
+  <input type="file" id="fileInput" accept="image/*">
+</div>
+
+<div id="status"></div>
+
+<div class="debug-grid" id="results" style="display:none;">
+
+  <!-- Bild + Sampling-Regionen -->
+  <div class="panel image-panel">
+    <div class="panel-head">Foto + Sampling-Regionen</div>
+    <div class="panel-body">
+      <canvas id="debugCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Metriken -->
+  <div class="panel">
+    <div class="panel-head">Abgeleitete Metriken</div>
+    <div class="panel-body" id="metricsPanel">
+      <div class="empty-state">Warte auf Analyse…</div>
+    </div>
+  </div>
+
+  <!-- Hautton -->
+  <div class="panel">
+    <div class="panel-head">Dominanter Hautton</div>
+    <div class="panel-body" id="skinTonePanel">
+      <div class="empty-state">Warte auf Analyse…</div>
+    </div>
+  </div>
+
+  <!-- Cluster -->
+  <div class="panel">
+    <div class="panel-head">K-Means Cluster</div>
+    <div class="panel-body" id="clusterPanel">
+      <div class="empty-state">Warte auf Analyse…</div>
+    </div>
+  </div>
+
+  <!-- Scores -->
+  <div class="panel full-width">
+    <div class="panel-head">Farbtyp-Scores (Top 6)</div>
+    <div class="panel-body" id="scoresPanel">
+      <div class="empty-state">Warte auf Analyse…</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Hidden image for analysis -->
+<img id="sourceImg" style="display:none;">
+
+<script type="module">
+/**
+ * Debug-Seite — importiert skinAnalysis direkt aus dem Projekt
+ */
+import { analyzeSkin, initSkinAnalysis, debugDrawRegions } from './src/modules/skinAnalysis.js';
+
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const status = document.getElementById('status');
+const results = document.getElementById('results');
+const sourceImg = document.getElementById('sourceImg');
+
+// ── Upload-Handler ──
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processFile(f);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
+
+function setStatus(msg, type = '') {
+  status.textContent = msg;
+  status.className = type;
+}
+
+async function processFile(file) {
+  setStatus('⏳ Bild wird geladen…', 'loading');
+  results.style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    sourceImg.src = e.target.result;
+    sourceImg.onload = async () => {
+      await runAnalysis();
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+async function runAnalysis() {
+  try {
+    setStatus('⏳ MediaPipe wird geladen (erster Aufruf ~4 MB)…', 'loading');
+    await initSkinAnalysis();
+
+    setStatus('⏳ Gesicht wird erkannt + Hautpixel werden analysiert…', 'loading');
+    const result = await analyzeSkin(sourceImg);
+
+    if (!result.success) {
+      setStatus('✗ ' + result.error, 'error');
+      return;
+    }
+
+    setStatus(`✓ Analyse abgeschlossen — ${result.pixelCount} Hautpixel, Top: ${result.scores[0].name}`, 'success');
+    results.style.display = 'grid';
+
+    // Debug-Regionen zeichnen
+    const debugCanvas = document.getElementById('debugCanvas');
+    debugDrawRegions(sourceImg, debugCanvas);
+
+    renderMetrics(result.metrics);
+    renderSkinTone(result.dominantLab, result.dominantRgb);
+    renderClusters(result.clusterInfo);
+    renderScores(result.scores, result.topConfidence);
+
+  } catch (err) {
+    setStatus('✗ Fehler: ' + err.message, 'error');
+    console.error(err);
+  }
+}
+
+// ── Render-Funktionen ──
+
+function renderMetrics(m) {
+  const panel = document.getElementById('metricsPanel');
+  const warmCool = m.hue > 60 ? 'warm' : m.hue < 48 ? 'cool' : '';
+  const warmLabel = m.hue > 60 ? '→ warm' : m.hue < 48 ? '→ kühl' : '→ neutral';
+
+  panel.innerHTML = `
+    <div class="metric-row">
+      <span class="metric-label">ITA <span class="hint">(Hautton-Winkel)</span></span>
+      <span class="metric-value">${m.ita.toFixed(1)}° → ${formatITACat(m.itaCategory)}</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Hue Angle <span class="hint">(Farbton)</span></span>
+      <span class="metric-value ${warmCool}">${m.hue.toFixed(1)}° ${warmLabel}</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Chroma <span class="hint">(Sättigung)</span></span>
+      <span class="metric-value">${m.chroma.toFixed(1)} ${m.chroma > 22 ? '→ klar' : m.chroma < 14 ? '→ gedämpft' : '→ mittel'}</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">L* <span class="hint">(Helligkeit)</span></span>
+      <span class="metric-value">${m.L.toFixed(1)}</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">a* <span class="hint">(rot ↔ grün)</span></span>
+      <span class="metric-value">${m.a.toFixed(1)}</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">b* <span class="hint">(gelb ↔ blau)</span></span>
+      <span class="metric-value">${m.b.toFixed(1)}</span>
+    </div>
+  `;
+}
+
+function formatITACat(cat) {
+  const labels = {
+    very_light: 'Sehr hell', light: 'Hell', intermediate: 'Mittel',
+    tan: 'Gebräunt', brown: 'Braun', dark: 'Dunkel'
+  };
+  return labels[cat] || cat;
+}
+
+function renderSkinTone(lab, rgb) {
+  const panel = document.getElementById('skinTonePanel');
+  const hex = '#' + [rgb.r, rgb.g, rgb.b].map(v => v.toString(16).padStart(2, '0')).join('');
+
+  panel.innerHTML = `
+    <div class="skin-swatch">
+      <div class="color-circle" style="background:${hex}"></div>
+      <div class="lab-values">
+        <div>Lab: ${lab.L.toFixed(1)}, ${lab.a.toFixed(1)}, ${lab.b.toFixed(1)}</div>
+        <div>RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}</div>
+        <div>Hex: ${hex}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderClusters(info) {
+  const panel = document.getElementById('clusterPanel');
+  if (!info || !info.all) { panel.innerHTML = '<div class="empty-state">Keine Cluster</div>'; return; }
+
+  panel.innerHTML = info.all
+    .sort((a, b) => b.size - a.size)
+    .map((c, i) => {
+      const rgb = labToRgb(c);
+      const hex = '#' + [rgb.r, rgb.g, rgb.b].map(v => v.toString(16).padStart(2, '0')).join('');
+      const pct = Math.round(c.size / info.totalPixels * 100);
+      return `
+        <div class="cluster-row">
+          <div class="cluster-dot" style="background:${hex}"></div>
+          <div class="cluster-info">
+            Cluster ${i + 1}: ${pct}% (${c.size} px)<br>
+            L=${c.L.toFixed(1)} a=${c.a.toFixed(1)} b=${c.b.toFixed(1)}
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+function renderScores(scores, confidence) {
+  const panel = document.getElementById('scoresPanel');
+  const top6 = scores.slice(0, 6);
+
+  let html = top6.map((s, i) => {
+    const isTop = i === 0;
+    const rankClass = isTop ? 'gold' : 'silver';
+    const barClass = isTop ? 'top' : 'runner';
+    return `
+      <div class="score-item">
+        <div class="score-top">
+          <span class="score-name">
+            <span class="rank ${rankClass}">${i + 1}</span>
+            ${s.name} <span style="color:#3a5a6a;font-size:.58rem;">(${s.season})</span>
+          </span>
+          <span class="score-pct">${s.pct || 0}%</span>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill ${barClass}" style="width:${s.pct || 0}%"></div>
+        </div>
+        <div class="score-fits">
+          <span class="score-fit">ITA: ${s.fits.ita}%</span>
+          <span class="score-fit">Hue: ${s.fits.hue}%</span>
+          <span class="score-fit">Chroma: ${s.fits.chroma}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Confidence Badge
+  const confClass = confidence > 15 ? 'high' : confidence > 8 ? 'medium' : 'low';
+  const confLabel = confidence > 15 ? 'Hohe Sicherheit' : confidence > 8 ? 'Mittlere Sicherheit' : 'Geringe Sicherheit — Quiz empfohlen';
+  html += `<div class="confidence-badge ${confClass}">Confidence: ${confidence}% — ${confLabel}</div>`;
+
+  panel.innerHTML = html;
+}
+
+// Hilfsfunktion: Lab → RGB (Duplikat aus skinAnalysis, da nicht exportiert)
+function labToRgb(lab) {
+  let y = (lab.L + 16) / 116;
+  let x = lab.a / 500 + y;
+  let z = y - lab.b / 200;
+  const eps = 0.008856, kap = 903.3;
+  x = (x*x*x > eps) ? x*x*x : (116*x-16)/kap;
+  y = (y*y*y > eps) ? y*y*y : (116*y-16)/kap;
+  z = (z*z*z > eps) ? z*z*z : (116*z-16)/kap;
+  x *= 0.95047; z *= 1.08883;
+  let r = 3.2404542*x - 1.5371385*y - 0.4985314*z;
+  let g = -0.9692660*x + 1.8760108*y + 0.0415560*z;
+  let b = 0.0556434*x - 0.2040259*y + 1.0572252*z;
+  r = r > 0.0031308 ? 1.055*Math.pow(r,1/2.4)-0.055 : 12.92*r;
+  g = g > 0.0031308 ? 1.055*Math.pow(g,1/2.4)-0.055 : 12.92*g;
+  b = b > 0.0031308 ? 1.055*Math.pow(b,1/2.4)-0.055 : 12.92*b;
+  return {
+    r: Math.round(Math.max(0,Math.min(255,r*255))),
+    g: Math.round(Math.max(0,Math.min(255,g*255))),
+    b: Math.round(Math.max(0,Math.min(255,b*255)))
+  };
+}
+</script>
+
+</body>
+</html>
