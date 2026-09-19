@@ -17,6 +17,9 @@ export const state = {
   // Ergebnis der automatischen Analyse (null = noch keine gelaufen)
   analysis: null,
 
+  // Welches Freistell-Verfahren zuletzt lief: 'segmentation' | 'floodfill' | 'none'
+  cutoutMethod: null,
+
   // UI
   currentSwatch: null,
   labelTimer: null,
@@ -95,6 +98,7 @@ export function resetAll() {
   state.obPhotoDataUrl = null;
   state.currentSwatch = null;
   state.analysis = null;
+  state.cutoutMethod = null;
   resetTouchup();
 
   // FIX: crop und compare blieben beim Zuruecksetzen stehen — inklusive noch

@@ -14,9 +14,11 @@
 import { registerSW } from 'virtual:pwa-register';
 import { $ } from '../state.js';
 import { MODEL_SOURCES, WASM_PATH } from '../config/face.js';
+import { SEGMENTER_SOURCES } from '../config/segmentation.js';
 
-/** Lokale Modell-URL (erste Quelle); die zweite ist der CDN-Fallback. */
+/** Lokale Modell-URLs (jeweils erste Quelle; die zweite ist der CDN-Fallback). */
 const LOCAL_MODEL_URL = MODEL_SOURCES[0];
+const LOCAL_SEGMENTER_URL = SEGMENTER_SOURCES[0];
 
 /** Je nach SIMD-Unterstützung lädt MediaPipe eine dieser Laufzeiten. */
 const WASM_BINARIES = [
@@ -106,9 +108,10 @@ export async function readOfflineState() {
   const cached = async (url) => Boolean(await caches.match(url, { ignoreSearch: true }));
   const runtimeHits = await Promise.all(WASM_BINARIES.map(cached));
 
+  const [face, segmenter] = await Promise.all([cached(LOCAL_MODEL_URL), cached(LOCAL_SEGMENTER_URL)]);
   return {
     supported: true,
-    model: await cached(LOCAL_MODEL_URL),
+    model: face && segmenter,
     runtime: runtimeHits.some(Boolean)
   };
 }
@@ -121,7 +124,7 @@ export async function refreshOfflineStatus() {
   }
 
   if (state.model && state.runtime) {
-    showOfflineStatus('Offline einsatzbereit: Gesichts-Modell und Laufzeit liegen auf dem Gerät.', 'ready');
+    showOfflineStatus('Offline einsatzbereit: Modelle und Laufzeit liegen auf dem Gerät.', 'ready');
   } else if (state.model || state.runtime) {
     showOfflineStatus('Teilweise vorbereitet – für vollständige Offline-Nutzung bitte einmal vorbereiten.', 'partial');
   } else {
@@ -147,18 +150,26 @@ export async function prepareOffline() {
       return;
     }
 
-    showOfflineStatus('Laufzeit und Modell werden geladen …', 'loading');
-    const { initSkinAnalysis } = await import('./skinAnalysis.js');
-    await initSkinAnalysis((message) => showOfflineStatus(message, 'loading'));
+    showOfflineStatus('Laufzeit und Modelle werden geladen …', 'loading');
+    const status = (message) => showOfflineStatus(message, 'loading');
+    const [{ initSkinAnalysis }, { ensureSegmenter }] = await Promise.all([
+      import('./skinAnalysis.js'),
+      import('../core/segmentation.js')
+    ]);
+    // Beide Modelle: ohne das Segmentierungs-Modell laesst sich offline zwar
+    // der Farbtyp bestimmen, aber kein Foto freistellen.
+    await initSkinAnalysis(status);
+    await ensureSegmenter(status);
 
     const state = await refreshOfflineStatus();
     if (!state.model) {
       // Unterscheiden, ob das Modell fehlt (CDN-Fallback griff) oder nur noch
       // nicht im Cache gelandet ist – beides fühlt sich sonst gleich an.
-      const local = await fetch(LOCAL_MODEL_URL, { method: 'HEAD' }).catch(() => null);
-      showOfflineStatus(local?.ok
-        ? 'Modell ist noch nicht im Cache – bitte erneut versuchen.'
-        : 'Das Modell wird nicht lokal ausgeliefert, sondern vom CDN geladen. Für echte Offline-Nutzung muss der Build "npm run assets:model" ausführen.',
+      const local = await Promise.all([LOCAL_MODEL_URL, LOCAL_SEGMENTER_URL]
+        .map((u) => fetch(u, { method: 'HEAD' }).then((r) => r.ok).catch(() => false)));
+      showOfflineStatus(local.every(Boolean)
+        ? 'Modelle sind noch nicht im Cache – bitte erneut versuchen.'
+        : 'Mindestens ein Modell wird nicht lokal ausgeliefert, sondern vom CDN geladen. Für echte Offline-Nutzung muss der Build "npm run assets:model" ausführen.',
         'partial');
     }
   } catch (error) {

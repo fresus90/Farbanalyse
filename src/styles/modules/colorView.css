@@ -52,3 +52,18 @@
 
 /* View Actions */
 .view-actions { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+
+/* Hinweis, wenn nicht das gelernte Freistell-Verfahren gelaufen ist */
+.cutout-hint {
+  max-width: 420px;
+  margin: 0 auto 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(232, 180, 64, .3);
+  border-radius: 8px;
+  background: rgba(232, 180, 64, .07);
+  color: #b89050;
+  font-size: .6rem;
+  line-height: 1.6;
+  text-align: center;
+}
+.cutout-hint[hidden] { display: none; }

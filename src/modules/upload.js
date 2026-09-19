@@ -6,6 +6,25 @@ import { state, $ } from '../state.js';
 import { removeBackground } from './bgRemoval.js';
 
 /**
+ * Weist darauf hin, wenn nicht das gelernte Verfahren gelaufen ist.
+ *
+ * Das einfache Flood-Fill scheitert an Farbverläufen, Schatten und an Haaren,
+ * die farblich nah am Hintergrund liegen. Wer das Ergebnis sieht, soll wissen,
+ * woran es liegt und was hilft.
+ */
+function showCutoutHint(method) {
+  const el = $('cutoutHint');
+  if (!el) return;
+  if (method === 'floodfill') {
+    el.textContent = 'Automatisches Freistellen war nicht möglich — es lief das '
+      + 'einfache Verfahren. Bei Haaren und unruhigem Hintergrund hilft „Nachbessern".';
+    el.hidden = false;
+  } else {
+    el.hidden = true;
+  }
+}
+
+/**
  * Zeigt das freigestellte Bild in der Stage an
  */
 export function showInView(url) {
@@ -56,16 +75,26 @@ export function processDataUrl(dataUrl) {
   if (skipCheckbox && skipCheckbox.checked) {
     state.cutoutDataUrl = dataUrl;
     state.finalDataUrl = dataUrl;
+    state.cutoutMethod = 'none';
+    showCutoutHint('none');
     showInView(dataUrl);
     return Promise.resolve(dataUrl);
   }
 
+  const setProcText = (text) => {
+    const el = procOverlay?.querySelector('.proc-text');
+    if (el) el.textContent = text;
+  };
+
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      removeBackground(img, $('workCanvas')).then((url) => {
+      removeBackground(img, $('workCanvas'), setProcText).then(({ url, method, reason }) => {
         state.cutoutDataUrl = url;
         state.finalDataUrl = url;
+        state.cutoutMethod = method;
+        if (method !== 'segmentation') console.info('Freistellen per Flood-Fill:', reason);
+        showCutoutHint(method);
         showInView(url);
         resolve(url);
       }).catch((err) => {

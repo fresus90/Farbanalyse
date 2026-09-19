@@ -8,7 +8,7 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - **Automatische Farbtyp-Bestimmung** — MediaPipe Face Landmarker, Lab-Clustering
   von Haut/Haar/Iris, Sklera-Weißabgleich, 7-dimensionales Typ-Matching
 - **Foto-Upload & Kamera** — Live-Kamera mit Gesichts-Guide oder Datei-Upload
-- **Hintergrund-Entfernung** — Client-seitiges Freistellen per Canvas
+- **Freistellen** — gelernte Personen-Segmentierung (MediaPipe), lokal im Browser
 - **Crop & Touch-Up** — Bildausschnitt anpassen, Freistellen nachbessern
 - **Farbvergleich** — Zwei Farbtypen nebeneinander vergleichen (Split-Screen)
 - **Stilberatung** — 8 Stilrichtungen, in den eigenen Farben dargestellt
@@ -22,6 +22,36 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - Vite (Build & Dev-Server), `vite-plugin-pwa` (Service Worker & Manifest)
 - MediaPipe Tasks Vision (WASM, läuft im Browser)
 - Cloudflare Pages (Hosting)
+
+## Freistellen
+
+Hauptweg ist eine gelernte Segmentierung (MediaPipe ImageSegmenter,
+`selfie_segmenter`, ~250 KB). Das ursprüngliche Flood-Fill bleibt als
+Rückfallebene.
+
+Warum der Wechsel: Das Flood-Fill schätzte **eine** globale Hintergrundfarbe aus
+dem Mittelwert aller Randpixel und entfernte alles, was in RGB näher als 48
+daran lag. Das scheitert an allem, was in echten Fotos vorkommt — an einem
+Farbverlauf oder Schatten an der Wand, an blondem Haar vor heller Wand, an
+grauer Kleidung vor grauer Wand. Haar ist der schwerste Fall: Jede Strähne ist
+eine Mischung aus Haar- und Wandfarbe, und ein harter Schwellwert kann eine
+Mischung nur ganz behalten oder ganz verwerfen.
+
+Zwei Dinge dazu, die über „Modell einbauen" hinausgehen:
+
+- **Randentmischung.** Ein halbtransparentes Randpixel ist eine Mischung
+  `C = a·F + (1-a)·B` und trägt damit noch die Farbe der Wand, vor der
+  fotografiert wurde. Diese App legt aber beliebige Farben *hinter* die Person —
+  der Saum wäre vor jeder neuen Farbe sichtbar und würde genau den Eindruck
+  verfälschen, um den es geht. `F` wird deshalb zurückgerechnet.
+- **Plausibilitätsprüfung.** Erkennt das Modell niemanden, liefert es keinen
+  Fehler, sondern eine Maske nahe null — daraus entstünde wortlos ein fast
+  leeres Bild. Maximalwert, Personenanteil und Polarität werden geprüft; fällt
+  die Maske durch, läuft das Flood-Fill, und die App sagt es.
+
+Warum nicht `selfie_multiclass_256x256` mit eigener Haar-Klasse: Das Modell
+wiegt 16 MB statt 250 KB. Beide rechnen intern in 256×256 — der Detailgrad an
+der Haarkante ist derselbe, der Unterschied ist rein semantisch.
 
 ## Stilberatung
 
@@ -65,7 +95,7 @@ Foto das Gerät nicht verlässt.
 
 - **App-Shell** (HTML, JS, CSS, Icons, Schriften) wird bei der Installation
   vorab gecacht — rund 630 KB.
-- **Modell (~3,8 MB) und WASM-Laufzeit (~11 MB)** bewusst nicht: Sie würden die
+- **Modelle (~4,1 MB) und WASM-Laufzeit (~11 MB)** bewusst nicht: Sie würden die
   Erstinstallation aufblähen, auch wenn nie eine Analyse läuft. Sie landen beim
   ersten Gebrauch im Laufzeit-Cache — oder vorab über *„Für Offline-Nutzung
   vorbereiten"* auf der Startseite.
@@ -121,9 +151,11 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │   │   ├── bodyShapes.json ← 5 Körperformen
 │   │   └── garments.js     ← SVG-Silhouetten der Kleidungsstücke
 │   ├── config/
-│   │   └── face.js         ← Pfade zu WASM-Laufzeit und Modell
+│   │   ├── face.js         ← Pfade zu WASM-Laufzeit und Gesichts-Modell
+│   │   └── segmentation.js ← Pfade zum Freistell-Modell
 │   ├── core/
 │   │   ├── color.js        ← Lab-Konvertierungen, ΔE76/ΔE2000
+│   │   ├── segmentation.js ← Personen-Maske (MediaPipe ImageSegmenter)
 │   │   ├── palette.js      ← Basis-/Akzentfarben, dunkler Anker
 │   │   └── bodyShape.js    ← Körperform aus Maßen
 │   ├── storage/
@@ -139,7 +171,7 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │   │   ├── crop.js         ← Crop-Tool
 │   │   ├── touchup.js      ← Freistell-Editor (Erase/Restore)
 │   │   ├── compare.js      ← Split-Screen Vergleichsmodus
-│   │   ├── bgRemoval.js    ← Hintergrund-Entfernung (Flood-Fill)
+│   │   ├── bgRemoval.js    ← Freistellen (Segmentierung + Flood-Fill)
 │   │   └── upload.js       ← Datei-Upload + Drag & Drop
 │   └── styles/
 │       ├── fonts.css       ← selbst gehostete Schriften (@font-face)
@@ -155,7 +187,7 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │           └── style.css
 ├── scripts/
 │   ├── sync-mediapipe-assets.mjs  ← WASM aus node_modules → public/
-│   └── fetch-face-model.mjs       ← Gesichts-Modell → public/models/
+│   └── fetch-models.mjs           ← Modelle → public/models/
 └── public/
     ├── icon.svg, icons/    ← App-Icons (im Repo)
     ├── mediapipe/wasm/     ← erzeugt, nicht im Repo

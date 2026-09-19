@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "assets": "npm run assets:mediapipe && npm run assets:model",
     "assets:mediapipe": "node scripts/sync-mediapipe-assets.mjs",
-    "assets:model": "node scripts/fetch-face-model.mjs",
+    "assets:model": "node scripts/fetch-models.mjs",
     "postinstall": "node scripts/sync-mediapipe-assets.mjs"
   },
   "devDependencies": {

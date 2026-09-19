@@ -93,6 +93,7 @@
     <button class="btn btn-ghost" id="compareBtn">⚖️ Vergleichen</button>
     <button class="btn btn-danger" id="resetBtn">✕ Entfernen</button>
   </div>
+  <p class="cutout-hint" id="cutoutHint" hidden></p>
   <div class="palette-section" id="palettesWrap" style="display:none">
     <div class="section-header"><div class="section-line"></div><div class="section-label">Deine Bestfarben</div><div class="section-line"></div></div>
     <div class="badge badge-good">✓ Klicke auf eine Farbe zum Ausprobieren</div>
@@ -307,7 +308,8 @@
   <p id="offlineStatus" class="hint" data-state="info"></p>
   <button class="btn btn-ghost" id="prepareOfflineBtn" type="button">⬇ Für Offline-Nutzung vorbereiten</button>
   <p class="hint">
-    Lädt Gesichts-Modell (~3,8&nbsp;MB) und Laufzeit (~11&nbsp;MB) einmalig auf das Gerät.
+    Lädt Gesichts-Modell (~3,8&nbsp;MB), Freistell-Modell (~0,3&nbsp;MB) und Laufzeit
+    (~11&nbsp;MB) einmalig auf das Gerät.
     Danach funktioniert die App auch ohne Netz – installierbar über das
     Browser-Menü („Zum Startbildschirm hinzufügen").
   </p>

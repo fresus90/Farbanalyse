@@ -69,11 +69,14 @@ export default defineConfig({
         skipWaiting: false,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.includes('/models/') && url.pathname.endsWith('.task'),
+            // FIX: die Regel griff nur fuer .task — das Segmentierungs-Modell
+            // ist eine .tflite-Datei und waere offline nicht verfuegbar gewesen.
+            urlPattern: ({ url }) => url.pathname.includes('/models/')
+              && (url.pathname.endsWith('.task') || url.pathname.endsWith('.tflite')),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'face-model-v1',
-              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheName: 'mediapipe-models-v1',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
               rangeRequests: true
             }
