@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <title>Farbanalyse — Debug v7</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+  /* Schriften kommen aus dem gemeinsamen, selbst gehosteten Stylesheet —
+     vorher lud diese Seite sie per @import von fonts.googleapis.com. */
+  @import url('./src/styles/fonts.css');
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:#0a0c12;color:#c8d0d8;font-family:'DM Sans',sans-serif;min-height:100vh;padding:20px 16px 60px;}
   .hdr{max-width:960px;margin:0 auto 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -62,11 +66,11 @@
   .mr:last-child{border-bottom:none;}
   .ml{font-size:.64rem;color:#6a8a9a;display:flex;align-items:center;gap:4px;}
   .ml .h{font-size:.5rem;color:#3a5a6a;}
-  .mv{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#c8d8e4;font-weight:500;}
+  .mv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.72rem;color:#c8d8e4;font-weight:500;}
   .mv.warm{color:#e8a860;}.mv.cool{color:#7ab0cc;}.mv.soft{color:#a0a8b8;}
   .sw-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
   .sw-circ{width:36px;height:36px;border-radius:50%;border:2px solid #2a3a4a;flex-shrink:0;}
-  .sw-info{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#8a9eaa;line-height:1.5;}
+  .sw-info{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.6rem;color:#8a9eaa;line-height:1.5;}
   .sw-lbl{font-size:.52rem;color:#4a6a7a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1px;}
   .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   @media(max-width:680px){.trio{grid-template-columns:1fr;}}
@@ -74,7 +78,7 @@
   .st{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
   .sn{font-size:.64rem;color:#8a9eaa;}.sn .rk{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;font-size:.48rem;font-weight:600;margin-right:4px;}
   .rk.g{background:#4a7fa5;color:#fff;}.rk.s{background:#2a3a4a;color:#8a9eaa;}
-  .sp{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:#c8d8e4;}
+  .sp{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.64rem;color:#c8d8e4;}
   .sb{height:3px;background:#1a2230;border-radius:2px;overflow:hidden;}
   .sf{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
   .sf.t{background:linear-gradient(90deg,#4a7fa5,#7ab8d4);}.sf.r{background:#2a4a5a;}

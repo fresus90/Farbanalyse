@@ -4,6 +4,7 @@
  */
 
 // ── Styles ──
+import './styles/fonts.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/modules/colorView.css';
@@ -22,6 +23,7 @@ import { initTouchup, applyTouchup, cleanupKeyListener, cleanupWheelListener, se
 import { openCompare, closeCompare, initCompare } from './modules/compare.js';
 import { initAutoAnalysis, resetAutoAnalysis } from './modules/autoAnalysis.js';
 import { showScreen } from './modules/screens.js';
+import { initPwa } from './modules/pwa.js';
 
 // ══════════════════════════════════════
 // EDIT MODE
@@ -97,6 +99,7 @@ function init() {
   initCamera();
   initCompare();
   initAutoAnalysis();
+  initPwa();
 
   // View anzeigen
   showScreen('view');

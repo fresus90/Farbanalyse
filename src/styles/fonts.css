@@ -1,0 +1,62 @@
+/**
+ * Selbst gehostete Schriften.
+ *
+ * Vorher lud base.css die Schriften per @import von fonts.googleapis.com. Das
+ * ist ein render-blockierender Drittanbieter-Request bei jedem Seitenaufbau —
+ * und in der installierten App ohne Netz fiel die Typografie auf Systemschriften
+ * zurueck. Beides passt nicht zu einer App, die fuer sich in Anspruch nimmt,
+ * vollstaendig auf dem Geraet zu laufen.
+ *
+ * Nur das latin-Subset: Umlaute und ss liegen darin (U+0000-00FF).
+ * Es sind Variable Fonts: eine Datei je Familie deckt alle genutzten Schnitte
+ * ab, jede @font-face-Regel pinnt daraus eine Instanz.
+ * Die Dateien liegen bewusst unter src/styles/fonts/ und nicht in public/:
+ * so loest Vite den relativen Pfad auf, haengt einen Content-Hash an und
+ * respektiert einen abweichenden base-Pfad. Aus public/ ginge nur ein
+ * absolutes "/fonts/...", das unter einem Unterpfad brechen wuerde.
+ */
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./fonts/dm-sans.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/dm-sans.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/dm-sans.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/playfair-display.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/playfair-display.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

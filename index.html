@@ -2,7 +2,21 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Persönliche Farbanalyse: Finde deinen saisonalen Farbtyp – die Auswertung läuft vollständig im Browser, das Foto verlässt dein Gerät nicht.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <!-- Theme-Farbe färbt in der installierten App den Bereich um die
+       Statusleiste. Die App ist durchgehend dunkel, daher nur ein Wert. -->
+  <meta name="theme-color" content="#0f1117">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- "black-translucent" wäre hier vertretbar (dunkle App), "default" ist aber
+       robuster: Der Inhalt bleibt unterhalb der Statusleiste, die safe-area-
+       Abstände dienen nur als Absicherung. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Farbanalyse">
   <title>Persönliche Farbanalyse</title>
   <script type="module" src="/src/main.js"></script>
 </head>
@@ -221,6 +235,22 @@
   </div>
 </div>
 
+<!-- ════ OFFLINE / INSTALLATION ════ -->
+<section class="info-card" id="offlineCard">
+  <h2>Offline nutzen</h2>
+  <p id="offlineStatus" class="hint" data-state="info"></p>
+  <button class="btn btn-ghost" id="prepareOfflineBtn" type="button">⬇ Für Offline-Nutzung vorbereiten</button>
+  <p class="hint">
+    Lädt Gesichts-Modell (~3,8&nbsp;MB) und Laufzeit (~11&nbsp;MB) einmalig auf das Gerät.
+    Danach funktioniert die App auch ohne Netz – installierbar über das
+    Browser-Menü („Zum Startbildschirm hinzufügen").
+  </p>
+  <p class="hint">
+    Die Auswertung läuft vollständig im Browser. Dein Foto wird weder hochgeladen
+    noch gespeichert.
+  </p>
+</section>
+
 <canvas id="workCanvas"></canvas>
 
 <!-- ════ CAMERA GUIDE MODAL ════ -->
@@ -294,6 +324,14 @@
       <button class="btn btn-ghost" id="guideFileBtn">🖼 Datei wählen</button>
       <button class="btn btn-primary" id="guideCameraBtn">📷 Kamera</button>
     </div>
+  </div>
+</div>
+
+<div id="updateBanner" class="update-banner" role="status" hidden>
+  <span>Eine neue Version ist verfügbar.</span>
+  <div class="update-actions">
+    <button class="btn btn-primary" id="updateNowBtn" type="button">Jetzt aktualisieren</button>
+    <button class="btn btn-ghost" id="updateLaterBtn" type="button">Später</button>
   </div>
 </div>
 

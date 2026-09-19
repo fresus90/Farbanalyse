@@ -17,7 +17,7 @@
 import { $ } from '../state.js';
 
 // Zusatzelemente, die zum View-Screen gehoeren, aber ausserhalb liegen
-const VIEW_CHROME = ['analysisBanner', 'typeSelectorWrap', 'typeCard'];
+const VIEW_CHROME = ['analysisBanner', 'typeSelectorWrap', 'typeCard', 'offlineCard'];
 
 const SCREENS = {
   view:    { id: 'viewMode',    display: 'block' },

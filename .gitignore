@@ -1,5 +1,11 @@
 node_modules/
 dist/
+dev-dist/
 .wrangler/
 .DS_Store
 *.log
+*.local
+
+# Von scripts/ generierte Binärassets – nicht im Repo, sondern per npm run assets
+public/mediapipe/
+public/models/

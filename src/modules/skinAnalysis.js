@@ -36,6 +36,8 @@
  *   - getDefaultRegions() → Fallback wenn kein Gesicht erkannt
  */
 
+import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision';
+import { LANDMARKER_OPTIONS, MODEL_SOURCES, WASM_PATH } from '../config/face.js';
 import colorTypes from '../data/colorTypes.json';
 
 // ══════════════════════════════════════
@@ -44,25 +46,56 @@ import colorTypes from '../data/colorTypes.json';
 
 let faceLandmarker = null;
 let isInitialized = false;
+// Parallele Aufrufe (Upload und "Offline vorbereiten" gleichzeitig) duerfen den
+// Landmarker nicht zweimal aufbauen — ~22 MB WASM plus Modell.
+let initPromise = null;
 
-export async function initSkinAnalysis() {
+/** Laedt das Modell als ArrayBuffer — erste erreichbare Quelle gewinnt. */
+async function loadModelBuffer(onStatus) {
+  const errors = [];
+  for (const url of MODEL_SOURCES) {
+    try {
+      onStatus?.(url.startsWith('http') ? 'Modell wird vom CDN geladen …' : 'Modell wird geladen …');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.arrayBuffer();
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
+    }
+  }
+  throw new Error(`Gesichts-Modell nicht ladbar.\n${errors.join('\n')}`);
+}
+
+/**
+ * Initialisiert den Face Landmarker einmalig.
+ *
+ * Laufzeit und Modell kommen aus dem eigenen Origin (public/mediapipe/wasm bzw.
+ * public/models). Vorher lud die App beides vom CDN — das laesst sich vom
+ * Service Worker nicht zuverlaessig cachen, die Analyse waere in der
+ * installierten App ohne Netz nicht verfuegbar gewesen.
+ *
+ * @param {(status: string) => void} [onStatus] Fortschrittsmeldungen fuer die UI
+ */
+export async function initSkinAnalysis(onStatus) {
   if (isInitialized) return;
-  // Version gepinnt: @latest kann die App jederzeit ohne Code-Aenderung brechen.
-  const VISION_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18';
-  const module = await import(/* @vite-ignore */ `${VISION_CDN}/vision_bundle.mjs`);
-  const { FaceLandmarker, FilesetResolver } = module;
-  const vision = await FilesetResolver.forVisionTasks(`${VISION_CDN}/wasm`);
-  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-      delegate: 'GPU'
-    },
-    runningMode: 'IMAGE',
-    numFaces: 1,
-    outputFaceBlendshapes: false,
-    outputFacialTransformationMatrixes: false
-  });
-  isInitialized = true;
+  if (!initPromise) {
+    initPromise = (async () => {
+      onStatus?.('Laufzeit wird initialisiert …');
+      const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
+      const modelAssetBuffer = new Uint8Array(await loadModelBuffer(onStatus));
+      onStatus?.('Gesichts-Erkennung wird vorbereitet …');
+      faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetBuffer, delegate: 'GPU' },
+        runningMode: 'IMAGE',
+        ...LANDMARKER_OPTIONS
+      });
+      isInitialized = true;
+    })().catch((err) => {
+      initPromise = null;
+      throw err;
+    });
+  }
+  return initPromise;
 }
 
 export function isAnalysisReady() { return isInitialized; }
@@ -98,9 +131,9 @@ export function getDefaultRegions() {
   };
 }
 
-export async function getAutoRegions(imageEl) {
+export async function getAutoRegions(imageEl, onStatus) {
   if (!isInitialized) {
-    try { await initSkinAnalysis(); } catch (err) {
+    try { await initSkinAnalysis(onStatus); } catch (err) {
       console.warn('MediaPipe nicht verfuegbar, nutze Defaults:', err.message);
       return getDefaultRegions();
     }
@@ -905,10 +938,10 @@ function computeFeaturesAndMatch(skinLab, hairLab, irisLab, skinCluster, hairClu
 // Haupt-Analyse (Landmark-basiert)
 // ══════════════════════════════════════
 
-export async function analyzeSkin(imageEl) {
+export async function analyzeSkin(imageEl, onStatus) {
   if (!isInitialized) {
-    try { await initSkinAnalysis(); } catch (err) {
-      return { success: false, error: 'MediaPipe konnte nicht geladen werden: ' + err.message };
+    try { await initSkinAnalysis(onStatus); } catch (err) {
+      return { success: false, error: 'Gesichts-Erkennung konnte nicht geladen werden: ' + err.message };
     }
   }
 
