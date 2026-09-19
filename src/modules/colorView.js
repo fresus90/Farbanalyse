@@ -35,6 +35,9 @@ export function onTypeChange(key) {
 
   const dd = $('typeDropdown');
   if (dd && dd.value !== key) dd.value = key;
+
+  // Die Stilberatung faerbt ihre Silhouetten mit dieser Palette ein.
+  document.dispatchEvent(new CustomEvent('type-changed', { detail: { key } }));
 }
 
 /**

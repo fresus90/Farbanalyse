@@ -11,6 +11,8 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - **Hintergrund-Entfernung** — Client-seitiges Freistellen per Canvas
 - **Crop & Touch-Up** — Bildausschnitt anpassen, Freistellen nachbessern
 - **Farbvergleich** — Zwei Farbtypen nebeneinander vergleichen (Split-Screen)
+- **Stilberatung** — 8 Stilrichtungen, in den eigenen Farben dargestellt
+- **Körperform** — aus vier Maßen bestimmt, mit nachvollziehbarer Begründung
 - **Responsive** — Optimiert für Mobile und Desktop
 - **PWA** — installierbar, offline nutzbar, keine Drittanbieter-Requests
 
@@ -20,6 +22,37 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - Vite (Build & Dev-Server), `vite-plugin-pwa` (Service Worker & Manifest)
 - MediaPipe Tasks Vision (WASM, läuft im Browser)
 - Cloudflare Pages (Hosting)
+
+## Stilberatung
+
+Die Beratung führt drei Ebenen zusammen:
+
+1. **Farbtyp** — aus der Analyse oder von Hand gewählt
+2. **Stilrichtung** — wählt die Nutzerin/der Nutzer selbst. Geschmack lässt sich
+   nicht aus einem Foto ableiten, deshalb wird er auch nicht geraten.
+3. **Körperform** — aus Schulter, Büste, Taille und Hüfte bestimmt
+   (`src/core/bodyShape.js`), regelbasiert und mit ausgegebener Begründung.
+   Wer die eigene Form kennt, wählt sie direkt.
+
+Daraus entstehen Basisfarben, Akzentfarben, passende Schnitte, Materialien und
+eine Liste dessen, was zurückstehen sollte.
+
+**Die Silhouetten sind gezeichnet, nicht fotografiert** (`src/data/garments.js`).
+Stockfotos wären lizenzpflichtig, würden veralten und immer einen bestimmten
+Körper zeigen. Gezeichnete Silhouetten lassen sich dagegen einfärben — die
+Stilkarten zeigen jeden Stil in der *eigenen* Palette statt an einem fremden
+Model. Akzentfarben landen dabei auf Oberteilen und Accessoires, nie auf Hosen
+oder Mänteln: Farbe wirkt am Gesicht.
+
+Stilrichtung, Körperform und Maße werden lokal gespeichert
+(`src/storage/preferences.js`, `localStorage`) und verlassen das Gerät nicht.
+
+### Navigation
+
+Die Screens laufen über den URL-Hash (`#farbe`, `#stil`, `#bearbeiten`,
+`#vergleich`). Das ist nicht Kosmetik: Als installierte PWA im Standalone-Modus
+würde die Android-Zurück-Geste ohne History-Einträge die App verlassen, statt
+einen Screen zurückzugehen.
 
 ## PWA & Offline
 
@@ -83,14 +116,24 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │   ├── state.js            ← Zentraler App-State
 │   ├── router.js           ← Hash-basierter Screen-Router
 │   ├── data/
-│   │   └── colorTypes.json ← Alle 12 Farbtyp-Definitionen
+│   │   ├── colorTypes.json ← Alle 12 Farbtyp-Definitionen
+│   │   ├── styleTypes.json ← 8 Stilrichtungen
+│   │   ├── bodyShapes.json ← 5 Körperformen
+│   │   └── garments.js     ← SVG-Silhouetten der Kleidungsstücke
 │   ├── config/
 │   │   └── face.js         ← Pfade zu WASM-Laufzeit und Modell
+│   ├── core/
+│   │   ├── color.js        ← Lab-Konvertierungen, ΔE76/ΔE2000
+│   │   ├── palette.js      ← Basis-/Akzentfarben, dunkler Anker
+│   │   └── bodyShape.js    ← Körperform aus Maßen
+│   ├── storage/
+│   │   └── preferences.js  ← Stil, Körperform, Maße (localStorage)
 │   ├── modules/
 │   │   ├── colorView.js    ← Haupt-View: Swatches, Stage, Farbvorschau
 │   │   ├── skinAnalysis.js ← Erscheinungsbild-Analyse & Farbtyp-Matching
 │   │   ├── autoAnalysis.js ← bindet die Analyse an die App an
-│   │   ├── screens.js      ← Umschalten View / Edit / Compare
+│   │   ├── styleView.js    ← Stilberatung: Galerie, Detail, Empfehlung
+│   │   ├── screens.js      ← Screens + Hash-Routing
 │   │   ├── pwa.js          ← Service Worker, Update-Hinweis, Offline-Cache
 │   │   ├── camera.js       ← Live-Kamera + Guide-Modal
 │   │   ├── crop.js         ← Crop-Tool
@@ -108,7 +151,8 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │           ├── camera.css
 │           ├── crop.css
 │           ├── touchup.css
-│           └── compare.css
+│           ├── compare.css
+│           └── style.css
 ├── scripts/
 │   ├── sync-mediapipe-assets.mjs  ← WASM aus node_modules → public/
 │   └── fetch-face-model.mjs       ← Gesichts-Modell → public/models/

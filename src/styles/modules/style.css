@@ -1,0 +1,246 @@
+/* ══════════════════════════════════════
+   Stilberatung
+   ══════════════════════════════════════ */
+
+#styleMode { max-width: 520px; margin: 0 auto 32px; }
+
+.style-head { text-align: center; margin-bottom: 18px; }
+.style-head h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  color: #d4cfc9;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+.style-head .hint { font-size: .64rem; color: #5a7a8a; line-height: 1.6; }
+
+.style-section { margin-bottom: 26px; }
+
+.panel {
+  padding: 14px 16px;
+  border: 1px solid #1e2a38;
+  border-radius: 12px;
+  background: #12161e;
+}
+
+/* .hint war nur innerhalb von .info-card und .style-head definiert — in den
+   Panels der Stilberatung erbte der Absatz dadurch die Body-Schriftgröße. */
+.panel .hint {
+  font-size: .6rem;
+  line-height: 1.7;
+  color: #5a7a8a;
+  margin-top: 6px;
+}
+.panel .hint strong { color: #8ab8d4; font-weight: 500; }
+
+/* ── Galerie der Stilrichtungen ── */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 440px) { .style-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.style-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px 12px;
+  border: 1px solid #1e2a38;
+  border-radius: 12px;
+  background: #12161e;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, transform .15s;
+  font-family: inherit;
+  text-align: center;
+}
+.style-card:hover { border-color: #2f4a63; transform: translateY(-2px); }
+.style-card.active { border-color: #4a7fa5; background: rgba(74,127,165,.09); }
+
+.style-card-figures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: 62px;
+  margin-bottom: 4px;
+}
+.style-card-figures .garment { height: 100%; width: auto; }
+
+.style-card-name { font-size: .72rem; color: #c8d8e4; }
+.style-card-tagline { font-size: .54rem; color: #5a7a8a; line-height: 1.4; }
+
+/* ── Detailansicht ── */
+.detail-head h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: #d4cfc9;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+.detail-desc { font-size: .66rem; color: #8a9eaa; line-height: 1.65; margin-bottom: 6px; }
+.detail-sil { font-size: .62rem; color: #6a8a9a; line-height: 1.6; }
+.detail-sil strong { color: #8ab8d4; font-weight: 500; }
+
+.detail-block { margin-top: 16px; padding-top: 14px; border-top: 1px solid #1a2230; }
+.detail-block:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.detail-block.avoid { border-top-color: rgba(192,120,120,.28); }
+
+.detail-label {
+  font-size: .56rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #4a7fa5;
+  margin-bottom: 8px;
+}
+.detail-block.avoid .detail-label { color: #c07878; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-size: .58rem;
+  color: #8a9eaa;
+  background: #1a2230;
+  border: 1px solid #22303f;
+  border-radius: 12px;
+  padding: 3px 9px;
+  line-height: 1.5;
+}
+.detail-block.avoid .chip { color: #b08a8a; border-color: rgba(192,120,120,.24); }
+
+/* ── Schlüsselteile ── */
+.piece-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (min-width: 420px) { .piece-row { grid-template-columns: repeat(6, 1fr); } }
+
+.piece { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.piece .garment { width: 100%; height: 56px; }
+.piece figcaption { font-size: .5rem; color: #5a7a8a; text-align: center; line-height: 1.3; }
+
+/* ── Farbzeilen ── */
+.swatch-line { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-bottom: 6px; }
+.swatch-line-label {
+  font-size: .52rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #4a6a7a;
+  min-width: 46px;
+}
+.mini-swatch {
+  font-size: .56rem;
+  border-radius: 10px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  line-height: 1.4;
+}
+
+/* ── Maßformular ── */
+.measure-form { margin: 12px 0; }
+.measure-field { display: block; margin-bottom: 10px; }
+.measure-field span {
+  display: block;
+  font-size: .64rem;
+  color: #8a9eaa;
+  margin-bottom: 4px;
+}
+.measure-field em {
+  display: block;
+  font-style: normal;
+  font-size: .54rem;
+  color: #4a6a7a;
+  margin-top: 1px;
+}
+.measure-field input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #22303f;
+  background: #0e1218;
+  color: #c8d8e4;
+  font-family: inherit;
+  font-size: .76rem;
+}
+.measure-field input:focus { outline: none; border-color: #4a7fa5; }
+
+.measure-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.measure-actions .btn { flex: 1; justify-content: center; }
+
+/* ── Ergebnis der Formbestimmung ── */
+.shape-result { margin: 12px 0; }
+.shape-result[data-state="empty"] { display: none; }
+.shape-result[data-state="error"] {
+  font-size: .62rem;
+  color: #c07878;
+  background: rgba(192,120,120,.08);
+  border: 1px solid rgba(192,120,120,.25);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.shape-result[data-state="ok"] {
+  background: rgba(106,170,122,.07);
+  border: 1px solid rgba(106,170,122,.25);
+  border-radius: 10px;
+  padding: 12px;
+}
+.shape-result-head { display: flex; gap: 12px; align-items: flex-start; }
+.shape-result-head strong { font-size: .8rem; color: #c8d8e4; font-weight: 500; }
+.shape-result-head p { font-size: .6rem; color: #8a9eaa; line-height: 1.6; margin-top: 2px; }
+.shape-result .hint { font-size: .56rem; color: #6aaa7a; margin-top: 4px; }
+
+.shape-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #1a2230;
+  border: 1px solid #2a3a4a;
+  color: #8ab8d4;
+  font-size: .68rem;
+  flex-shrink: 0;
+}
+.shape-letter.big { width: 38px; height: 38px; font-size: .95rem; }
+
+.reasons { list-style: none; margin-top: 10px; padding-left: 0; }
+.reasons li {
+  font-size: .56rem;
+  color: #6a8a9a;
+  line-height: 1.7;
+  padding-left: 12px;
+  position: relative;
+}
+.reasons li::before { content: '·'; position: absolute; left: 3px; color: #4a7fa5; }
+
+/* ── Direktauswahl der Form ── */
+.shape-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.shape-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px 5px 6px;
+  border-radius: 20px;
+  border: 1px solid #22303f;
+  background: #12161e;
+  color: #8a9eaa;
+  font-family: inherit;
+  font-size: .6rem;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.shape-chip:hover { border-color: #2f4a63; color: #c8d8e4; }
+.shape-chip.active { border-color: #4a7fa5; color: #c8d8e4; background: rgba(74,127,165,.1); }
+
+/* ── Empfehlungszeilen ── */
+.rec-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 7px; }
+.rec-group {
+  font-size: .54rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #4a6a7a;
+  min-width: 68px;
+  padding-top: 4px;
+  flex-shrink: 0;
+}

@@ -151,3 +151,31 @@
 }
 .update-banner[hidden] { display: none; }
 .update-actions { display: flex; gap: 8px; }
+
+/* ── Hauptnavigation ── */
+.app-nav {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  max-width: 520px;
+  margin: 0 auto 18px;
+  padding: 4px;
+  border: 1px solid #1e2a38;
+  border-radius: 24px;
+  background: #12161e;
+}
+.nav-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: #5a7a8a;
+  font-family: inherit;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.nav-btn:hover { color: #8ab8d4; }
+.nav-btn.active { background: rgba(74,127,165,.16); color: #c8d8e4; }

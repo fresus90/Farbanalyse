@@ -22,6 +22,12 @@
 </head>
 <body>
 
+<!-- ════ HAUPTNAVIGATION ════ -->
+<nav class="app-nav" id="appNav" aria-label="Hauptbereiche">
+  <button class="nav-btn" data-screen="view" type="button">🎨 Farbe</button>
+  <button class="nav-btn" data-screen="style" type="button">👗 Stil</button>
+</nav>
+
 <!-- ════ LIVE CAMERA ════ -->
 <div id="liveCameraModal">
   <div class="cam-wrap">
@@ -233,6 +239,66 @@
     <button class="btn btn-ghost" id="cancelEditBtn">Abbrechen</button>
     <button class="btn btn-primary" id="applyEditBtn">✓ Übernehmen</button>
   </div>
+</div>
+
+<!-- ════ STIL-BERATUNG ════ -->
+<div id="styleMode" style="display:none">
+  <header class="style-head">
+    <h1>Stilberatung</h1>
+    <p id="styleIntro" class="hint"></p>
+  </header>
+
+  <section class="style-section">
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Stilrichtung</div><div class="section-line"></div></div>
+    <div class="style-grid" id="styleGrid"></div>
+  </section>
+
+  <section class="style-section" id="styleDetailWrap" hidden>
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Dein Stil im Detail</div><div class="section-line"></div></div>
+    <div class="panel" id="styleDetail"></div>
+  </section>
+
+  <section class="style-section">
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Körperform</div><div class="section-line"></div></div>
+    <div class="panel">
+      <p class="hint">
+        Vier Maße genügen. Mit einem Maßband direkt am Körper messen, nicht über
+        dicker Kleidung, und das Band nicht straff ziehen.
+      </p>
+      <form id="measureForm" class="measure-form">
+        <label class="measure-field">
+          <span>Schulter <em>Über die breiteste Stelle der Schultern</em></span>
+          <input type="number" id="m_schulter" inputmode="decimal" min="40" max="200" step="0.5" placeholder="cm">
+        </label>
+        <label class="measure-field">
+          <span>Büste <em>Über die stärkste Stelle der Brust</em></span>
+          <input type="number" id="m_bueste" inputmode="decimal" min="40" max="200" step="0.5" placeholder="cm">
+        </label>
+        <label class="measure-field">
+          <span>Taille <em>An der schmalsten Stelle, nicht einziehen</em></span>
+          <input type="number" id="m_taille" inputmode="decimal" min="40" max="200" step="0.5" placeholder="cm">
+        </label>
+        <label class="measure-field">
+          <span>Hüfte <em>Über die stärkste Stelle von Po und Hüfte</em></span>
+          <input type="number" id="m_huefte" inputmode="decimal" min="40" max="200" step="0.5" placeholder="cm">
+        </label>
+        <div class="measure-actions">
+          <button class="btn btn-primary" type="submit">Form bestimmen</button>
+          <button class="btn btn-ghost" id="shapeResetBtn" type="button">Zurücksetzen</button>
+        </div>
+      </form>
+
+      <div id="shapeResult" class="shape-result" data-state="empty" role="status"></div>
+
+      <p class="hint">Oder direkt auswählen, wenn du deine Form schon kennst:</p>
+      <div class="shape-picker" id="shapePicker"></div>
+    </div>
+  </section>
+
+  <section class="style-section" id="recommendationWrap" hidden>
+    <div class="section-header"><div class="section-line"></div><div class="section-label">Deine Empfehlung</div><div class="section-line"></div></div>
+    <div class="panel" id="recommendation"></div>
+  </section>
 </div>
 
 <!-- ════ OFFLINE / INSTALLATION ════ -->

@@ -1,0 +1,67 @@
+{
+  "sanduhr": {
+    "name": "Sanduhr",
+    "letter": "X",
+    "desc": "Schulter und Hüfte etwa gleich breit, Taille deutlich schmaler.",
+    "goal": "Die vorhandene Balance zeigen, statt sie zu überdecken.",
+    "recommend": {
+      "oberteile": ["Tailliert geschnitten", "Wickeloberteile", "V- und Herzausschnitt"],
+      "unterteile": ["Hohe Leibhöhe", "Bleistiftrock", "gerade Hosen"],
+      "kleider": ["Wickelkleid", "Etuikleid mit Taillennaht"],
+      "jacken": ["Taillierte Blazer", "Gürtelmantel"]
+    },
+    "avoid": ["Kastige Oversize-Schnitte", "tief sitzende Hüfthosen", "Stoffe ohne Fall"]
+  },
+  "birne": {
+    "name": "Birne",
+    "letter": "A",
+    "desc": "Hüfte deutlich breiter als Schulter und Büste, Taille erkennbar.",
+    "goal": "Oben Volumen und Aufmerksamkeit aufbauen, unten ruhig bleiben.",
+    "recommend": {
+      "oberteile": ["Breitere Schulterlinie", "Puffärmel", "heller oder gemustert", "Boot- und U-Ausschnitt"],
+      "unterteile": ["A-Linien-Rock", "gerade oder ausgestellte Hosen", "dunkle Uni-Töne"],
+      "kleider": ["A-Linien-Kleid", "Empire-Taille"],
+      "jacken": ["Auf Taillenhöhe endend", "strukturierte Schultern"]
+    },
+    "avoid": ["Enge Röhrenhosen mit kurzem Oberteil", "auffällige Muster an der Hüfte", "Taschen auf Hüfthöhe"]
+  },
+  "v_form": {
+    "name": "V-Form",
+    "letter": "V",
+    "desc": "Schulter und Büste breiter als die Hüfte.",
+    "goal": "Unten Volumen ergänzen, die Schulterlinie weich halten.",
+    "recommend": {
+      "oberteile": ["Schmale, weiche Schultern", "V-Ausschnitt", "dunkle Uni-Töne", "Raglanärmel"],
+      "unterteile": ["Weite und ausgestellte Hosen", "Faltenrock", "hellere Töne und Muster"],
+      "kleider": ["Kleider mit Volumen ab der Taille", "Rockteil in A-Linie"],
+      "jacken": ["Ohne Schulterpolster", "auf Hüfthöhe endend"]
+    },
+    "avoid": ["Schulterpolster", "horizontale Streifen oben", "Puffärmel", "enge Hosen zu voluminösem Oberteil"]
+  },
+  "rechteck": {
+    "name": "Rechteck",
+    "letter": "H",
+    "desc": "Schulter, Taille und Hüfte etwa gleich breit, Taille kaum abgesetzt.",
+    "goal": "Kurven andeuten — Taille markieren oder Volumen gezielt setzen.",
+    "recommend": {
+      "oberteile": ["Peplum", "Lagen", "Rüschen und Struktur", "Wickeloptik"],
+      "unterteile": ["Hohe Leibhöhe", "Röcke mit Volumen", "Paperbag-Bund"],
+      "kleider": ["Kleider mit Taillengürtel", "Schnitte mit Seitennähten"],
+      "jacken": ["Taillierte Modelle", "Gürtel zum Binden"]
+    },
+    "avoid": ["Gerade, formlose Hänger", "durchgehende Uni-Silhouetten ohne Unterbrechung"]
+  },
+  "apfel": {
+    "name": "Apfel",
+    "letter": "O",
+    "desc": "Volumen in der Körpermitte, Schulter und Hüfte schmaler, Beine oft schlank.",
+    "goal": "Lange vertikale Linien schaffen, die Mitte nicht einschnüren.",
+    "recommend": {
+      "oberteile": ["Fließend fallend", "V-Ausschnitt", "Lagen mit offener Front", "Längsstruktur"],
+      "unterteile": ["Gerade Hosen", "schmale Silhouette", "hohe Leibhöhe ohne Druck"],
+      "kleider": ["Empire-Taille", "A-Linie", "Wickelkleid mit Fall"],
+      "jacken": ["Offen getragene lange Blazer", "Mäntel ohne Gürtel"]
+    },
+    "avoid": ["Enge Bündchen auf Taillenhöhe", "steife Stoffe in der Mitte", "eng anliegende Rippenstrickteile"]
+  }
+}

@@ -12,6 +12,7 @@ import './styles/modules/camera.css';
 import './styles/modules/crop.css';
 import './styles/modules/touchup.css';
 import './styles/modules/compare.css';
+import './styles/modules/style.css';
 
 // ── Modules ──
 import { state, $, resetAll } from './state.js';
@@ -22,7 +23,8 @@ import { initCrop, applyCrop, destroyCrop } from './modules/crop.js';
 import { initTouchup, applyTouchup, cleanupKeyListener, cleanupWheelListener, setTool, doUndo, resetToOriginal } from './modules/touchup.js';
 import { openCompare, closeCompare, initCompare } from './modules/compare.js';
 import { initAutoAnalysis, resetAutoAnalysis } from './modules/autoAnalysis.js';
-import { showScreen } from './modules/screens.js';
+import { showScreen, initScreens } from './modules/screens.js';
+import { initStyleView } from './modules/styleView.js';
 import { initPwa } from './modules/pwa.js';
 
 // ══════════════════════════════════════
@@ -99,10 +101,16 @@ function init() {
   initCamera();
   initCompare();
   initAutoAnalysis();
+  initStyleView();
   initPwa();
 
-  // View anzeigen
-  showScreen('view');
+  // Navigation
+  document.querySelectorAll('#appNav [data-screen]').forEach((btn) => {
+    btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+  });
+
+  // Screens inkl. Hash-Routing starten (stellt den Screen aus der URL her)
+  initScreens('view');
 
   // Edit-Buttons
   const editBtn = $('editBtn');
