@@ -227,7 +227,16 @@ function irisBox(lm, centerIdx, ringIndices, W, H) {
     const dx = lm[i].x * W - cx, dy = lm[i].y * H - cy;
     return Math.sqrt(dx * dx + dy * dy);
   });
-  const radius = Math.max(4, dists.reduce((a, b) => a + b, 0) / dists.length * 1.2);
+  // Die Ring-Landmarks liegen auf dem Irisrand, ihr mittlerer Abstand IST der
+  // Irisradius. Das Rechteck muss INNEN liegen: bei halber Seitenlaenge r/sqrt(2)
+  // beruehrt es den Kreis gerade, 0.62 haelt zusaetzlich Abstand zum Limbus.
+  //
+  // FIX: hier stand der Faktor 1.2 — das Rechteck umschrieb die Iris und zog
+  // Lidkante, Wimpern und Hautpartien mit hinein. An einem echten Portraet
+  // gemessen las die Debug-Ansicht dadurch #665651 (braeunliches Grau) statt
+  // der kreisfoermig gemessenen #444442 der App und meldete die Iris als
+  // deutlich waermer, als sie ist.
+  const radius = Math.max(4, dists.reduce((a, b) => a + b, 0) / dists.length * 0.62);
   return {
     x: ((cx - radius) / W) * 100,
     y: ((cy - radius) / H) * 100,
@@ -505,18 +514,31 @@ function computeWhiteBalanceOffset(scleraRgb) {
   const avg = averageLab(labs);
   if (!avg) return null;
 
-  // Sklera sollte hoch-L, neutral a/b sein
-  // Wenn L zu niedrig, sind es vermutlich keine Sklera-Pixel
-  if (avg.L < 60) return null;
+  // Ist der Bereich zu dunkel, sind es vermutlich keine Sklera-Pixel.
+  //
+  // FIX: die Schwelle lag bei L* 60 und hat damit nie ausgeloest. Die Sklera
+  // liegt im Schatten der Lider und erreicht in einem normal belichteten Foto
+  // selten L* 60 — an einem echten Portraet gemessen: mittlere Helligkeit 133
+  // von 255, also L* ~56. Der Weissabgleich, das Kernstueck von v5, war damit
+  // in der Praxis dauerhaft abgeschaltet. 45 laesst Augen im Lidschatten zu und
+  // schliesst Wimpern, Pupille und Lidfalte weiterhin aus.
+  if (avg.L < 45) return null;
 
-  // Korrektur: wie weit weicht Sklera von neutral ab?
-  // Wir korrigieren nur a und b, nicht L
-  // Begrenzen auf max ±8 um ueberkorrektur zu vermeiden
-  const maxCorrection = 8;
+  // Korrektur: wie weit weicht die Sklera von neutral ab? Nur a und b, nicht L.
+  //
+  // Bewusst nur teilweise korrigiert. Die Sklera ist kein perfektes Graureferenz:
+  // Sie ist durchblutet, leicht gelblich, und der Messpunkt liegt nahe der
+  // Karunkel — dem rosa Gewebe im inneren Augenwinkel. Ein Teil des gemessenen
+  // a*-Ueberschusses gehoert also zum Auge und nicht zum Licht. Eine volle
+  // Korrektur wuerde diesen Anteil dem Farbstich zuschlagen und den Hautton
+  // systematisch zu kuehl lesen.
+  const STRENGTH = 0.7;
+  const MAX_CORRECTION = 8;
+  const clamp = (v) => Math.max(-MAX_CORRECTION, Math.min(MAX_CORRECTION, v));
   return {
     dL: 0,
-    da: -Math.max(-maxCorrection, Math.min(maxCorrection, avg.a)),
-    db: -Math.max(-maxCorrection, Math.min(maxCorrection, avg.b * 0.7)) // b weniger stark korrigieren
+    da: -clamp(avg.a * STRENGTH),
+    db: -clamp(avg.b * STRENGTH)
   };
 }
 
