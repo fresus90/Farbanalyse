@@ -36,8 +36,9 @@
  *   - getDefaultRegions() → Fallback wenn kein Gesicht erkannt
  */
 
-import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision';
-import { LANDMARKER_OPTIONS, MODEL_SOURCES, WASM_PATH } from '../config/face.js';
+import { FaceLandmarker } from '@mediapipe/tasks-vision';
+import { LANDMARKER_OPTIONS } from '../config/face.js';
+import { loadFaceModelBuffer, loadVision } from '../core/faceModel.js';
 import {
   rgbToLab, labToRgb, deltaE76, deltaE2000, calculateChroma, calculateHueAngle
 } from '../core/color.js';
@@ -52,22 +53,6 @@ let isInitialized = false;
 // Parallele Aufrufe (Upload und "Offline vorbereiten" gleichzeitig) duerfen den
 // Landmarker nicht zweimal aufbauen — ~22 MB WASM plus Modell.
 let initPromise = null;
-
-/** Laedt das Modell als ArrayBuffer — erste erreichbare Quelle gewinnt. */
-async function loadModelBuffer(onStatus) {
-  const errors = [];
-  for (const url of MODEL_SOURCES) {
-    try {
-      onStatus?.(url.startsWith('http') ? 'Modell wird vom CDN geladen …' : 'Modell wird geladen …');
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.arrayBuffer();
-    } catch (err) {
-      errors.push(`${url}: ${err.message}`);
-    }
-  }
-  throw new Error(`Gesichts-Modell nicht ladbar.\n${errors.join('\n')}`);
-}
 
 /**
  * Initialisiert den Face Landmarker einmalig.
@@ -86,8 +71,8 @@ export async function initSkinAnalysis(onStatus) {
   if (!initPromise) {
     initPromise = (async () => {
       onStatus?.('Laufzeit wird initialisiert …');
-      const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
-      const modelAssetBuffer = new Uint8Array(await loadModelBuffer(onStatus));
+      const vision = await loadVision();
+      const modelAssetBuffer = new Uint8Array(await loadFaceModelBuffer(onStatus));
       onStatus?.('Gesichts-Erkennung wird vorbereitet …');
       faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetBuffer, delegate: 'GPU' },

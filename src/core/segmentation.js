@@ -5,9 +5,9 @@
  * Rückfallebene erhalten, wenn das Modell nicht geladen werden kann.
  */
 
-import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision';
-import { WASM_PATH } from '../config/face.js';
+import { ImageSegmenter } from '@mediapipe/tasks-vision';
 import { SEGMENTER_OPTIONS, SEGMENTER_SOURCES } from '../config/segmentation.js';
+import { loadVision } from './faceModel.js';
 
 let segmenter = null;
 let initPromise = null;
@@ -32,7 +32,7 @@ export function ensureSegmenter(onStatus) {
   if (segmenter) return Promise.resolve(segmenter);
   if (!initPromise) {
     initPromise = (async () => {
-      const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
+      const vision = await loadVision();
       const modelAssetBuffer = new Uint8Array(await loadModelBuffer(onStatus));
       segmenter = await ImageSegmenter.createFromOptions(vision, {
         baseOptions: { modelAssetBuffer, delegate: 'GPU' },

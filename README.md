@@ -7,7 +7,7 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - **12 Farbtypen** — Frühling, Sommer, Herbst, Winter (je 3 Untertypen)
 - **Automatische Farbtyp-Bestimmung** — MediaPipe Face Landmarker, Lab-Clustering
   von Haut/Haar/Iris, Sklera-Weißabgleich, 7-dimensionales Typ-Matching
-- **Foto-Upload & Kamera** — Live-Kamera mit Gesichts-Guide oder Datei-Upload
+- **Foto-Upload & Kamera** — Live-Kamera mit Aufnahmehilfe oder Datei-Upload
 - **Freistellen** — gelernte Personen-Segmentierung (MediaPipe), lokal im Browser
 - **Crop & Touch-Up** — Bildausschnitt anpassen, Freistellen nachbessern
 - **Farbvergleich** — Zwei Farbtypen nebeneinander vergleichen (Split-Screen)
@@ -22,6 +22,43 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 - Vite (Build & Dev-Server), `vite-plugin-pwa` (Service Worker & Manifest)
 - MediaPipe Tasks Vision (WASM, läuft im Browser)
 - Cloudflare Pages (Hosting)
+
+## Aufnahmehilfe
+
+Die Analyse ist nur so gut wie das Foto. Deshalb bewertet die Live-Kamera den
+Sucherstrom laufend und sagt, **was zu ändern ist**, bevor ausgelöst wird —
+sieben Prüfpunkte, jeder mit gemessenem Wert, Zielwert und konkreter Handlung:
+
+| Prüfpunkt | misst | Beispielhinweis |
+|---|---|---|
+| Abstand | Gesichtsbreite im Bild | „Näher herangehen" (22 % → mind. 34 %) |
+| Position | Abweichung vom Oval | „Gesicht nach rechts ins Oval bewegen" |
+| Kopfhaltung | Neigung der Augenlinie | „Kopf nach links aufrichten" (12° → unter 5°) |
+| Kamerahöhe | z-Differenz Stirn ↔ Kinn | „Kamera höher halten — sie zeigt von unten nach oben" |
+| Belichtung | Hauthelligkeit, Clipping je Kanal | „Zu dunkel" (60 → 110 bis 200) |
+| Seitenlicht | Helligkeit linke ↔ rechte Wange | „Zur Lichtquelle drehen (nach links)" |
+| Lichtfarbe | Farbstich im Augenweiß | „Warmes Kunstlicht" (31 % → unter 16 %) |
+
+Das Positionierungs-Oval färbt sich mit, der Auslöser zeigt Bereitschaft an.
+Blockiert wird nichts — wer trotzdem auslösen will, kann das.
+
+Zwei Details, die leicht falsch herum landen:
+
+- **Die Vorschau ist bei der Frontkamera gespiegelt, die Pixeldaten sind es
+  nicht.** Jede Richtungsanweisung wird deshalb in Bildschirmkoordinaten
+  umgerechnet, sonst stünde in „nach links" das Gegenteil dessen, was zu tun ist.
+- **Die Kamerahöhe kommt aus den z-Werten der Landmarks**, nicht aus der
+  Rotationsmatrix: MediaPipe legt den Ursprung in die Kopfmitte, kleinere z sind
+  näher an der Kamera. Ist die Kamera unter Augenhöhe, liegt das Kinn näher als
+  die Stirn — das Vorzeichen ist damit ableitbar statt geraten.
+
+Der Landmarker läuft gedrosselt (alle 160 ms auf einem 320-px-Bild); für
+Rückmeldung an einen Menschen reichen ein paar Bilder pro Sekunde. Lässt er sich
+nicht laden, blendet sich die Hilfe aus und die App bleibt bedienbar.
+
+Nach der Aufnahme prüft die Analyse zusätzlich (`assessQuality`) — aber einen
+Hinweis nach dem Auslösen kann man nicht mehr befolgen, ohne das Foto zu
+wiederholen.
 
 ## Freistellen
 
@@ -158,6 +195,9 @@ Node-Version ist über `.node-version` auf 22 gepinnt — Vite 5 und
 │   │   └── segmentation.js ← Pfade zum Freistell-Modell
 │   ├── core/
 │   │   ├── color.js        ← Lab-Konvertierungen, ΔE76/ΔE2000
+│   │   ├── faceModel.js    ← geteiltes Modell + WASM-Laufzeit
+│   │   ├── faceTracker.js  ← Landmarker im VIDEO-Modus
+│   │   ├── frameQuality.js ← Bewertung des Sucherbildes
 │   │   ├── segmentation.js ← Personen-Maske (MediaPipe ImageSegmenter)
 │   │   ├── palette.js      ← Basis-/Akzentfarben, dunkler Anker
 │   │   └── bodyShape.js    ← Körperform aus Maßen
@@ -168,6 +208,7 @@ Node-Version ist über `.node-version` auf 22 gepinnt — Vite 5 und
 │   │   ├── skinAnalysis.js ← Erscheinungsbild-Analyse & Farbtyp-Matching
 │   │   ├── autoAnalysis.js ← bindet die Analyse an die App an
 │   │   ├── styleView.js    ← Stilberatung: Galerie, Detail, Empfehlung
+│   │   ├── cameraGuide.js  ← Live-Schleife und Anzeige der Aufnahmehilfe
 │   │   ├── screens.js      ← Screens + Hash-Routing
 │   │   ├── pwa.js          ← Service Worker, Update-Hinweis, Offline-Cache
 │   │   ├── camera.js       ← Live-Kamera + Guide-Modal

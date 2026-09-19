@@ -4,6 +4,7 @@
 
 import { state, $ } from '../state.js';
 import { handleFile } from './upload.js';
+import { startCameraGuide, stopCameraGuide } from './cameraGuide.js';
 
 /**
  * Guide-Modal öffnen/schließen
@@ -35,6 +36,7 @@ export function openLiveCamera() {
 }
 
 export function closeLiveCamera() {
+  stopCameraGuide();
   if (state.camStream) {
     state.camStream.getTracks().forEach(t => t.stop());
     state.camStream = null;
@@ -70,6 +72,8 @@ function startStream() {
     if (v) {
       v.srcObject = stream;
       v.classList.toggle('mirror', state.camFacing === 'user');
+      // Erst starten, wenn Bilder fliessen — sonst misst die Hilfe ins Leere.
+      v.addEventListener('loadeddata', () => startCameraGuide(), { once: true });
     }
   })
   .catch(err => {
@@ -104,7 +108,7 @@ export function capturePhoto() {
   ctx.drawImage(video, 0, 0);
 
   const url = wc.toDataURL('image/jpeg', 0.92);
-  closeLiveCamera();
+  closeLiveCamera();   // beendet auch die Live-Hilfe
 
   fetch(url)
     .then(r => r.blob())
@@ -169,6 +173,17 @@ export function initCamera() {
 
   const shutterBtn = $('camShutterBtn');
   if (shutterBtn) shutterBtn.addEventListener('click', capturePhoto);
+
+  // Prüfliste einklappen — auf kleinen Displays verdeckt sie sonst das Gesicht.
+  const guideToggle = $('camGuideToggle');
+  if (guideToggle) {
+    guideToggle.addEventListener('click', () => {
+      const panel = $('camGuidePanel');
+      if (!panel) return;
+      const collapsed = panel.classList.toggle('collapsed');
+      guideToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
 
   const cancelBtn = $('camCancelBtn');
   if (cancelBtn) cancelBtn.addEventListener('click', closeLiveCamera);
