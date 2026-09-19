@@ -136,6 +136,9 @@ npm run build    # → dist/
 ```
 
 Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
+Node-Version ist über `.node-version` auf 22 gepinnt — Vite 5 und
+`vite-plugin-pwa` brauchen mindestens Node 18, und der Plattform-Default ist bei
+älteren Projekten niedriger.
 
 ## Projektstruktur
 
