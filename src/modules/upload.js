@@ -26,13 +26,66 @@ export function showInView(url) {
   // Erste Swatch automatisch aktivieren falls keine aktiv
   if (!state.currentSwatch) {
     const first = document.querySelector('#goodSwatches .swatch');
-    if (first) {
-      const hex = first._hex || first.getAttribute('data-hex');
-      const name = first._name || first.getAttribute('data-name');
-      // Wird vom colorView-Modul via Event gehandelt
-      first.click();
-    }
+    if (first) first.click();
   }
+
+  // Automatische Farbtyp-Bestimmung anstossen (autoAnalysis.js hoert darauf).
+  document.dispatchEvent(new CustomEvent('photo-ready', { detail: { url } }));
+}
+
+/**
+ * Setzt eine Data-URL als neues Originalbild, stellt frei und zeigt das
+ * Ergebnis an.
+ *
+ * Aus handleFile herausgezogen, damit der Crop denselben Weg nehmen kann —
+ * vorher hat applyCrop() das beschnittene Bild direkt als cutoutDataUrl
+ * gesetzt, ohne erneut freizustellen, wodurch der Hintergrund zurueckkam.
+ *
+ * @returns {Promise<string>} die angezeigte Data-URL
+ */
+export function processDataUrl(dataUrl) {
+  const uploadZone = $('uploadZone');
+  const procOverlay = $('procOverlay');
+
+  if (uploadZone) uploadZone.style.display = 'none';
+  if (procOverlay) procOverlay.style.display = 'flex';
+
+  state.originalDataUrl = dataUrl;
+
+  const skipCheckbox = $('skipBgRemoval');
+  if (skipCheckbox && skipCheckbox.checked) {
+    state.cutoutDataUrl = dataUrl;
+    state.finalDataUrl = dataUrl;
+    showInView(dataUrl);
+    return Promise.resolve(dataUrl);
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      removeBackground(img, $('workCanvas')).then((url) => {
+        state.cutoutDataUrl = url;
+        state.finalDataUrl = url;
+        showInView(url);
+        resolve(url);
+      }).catch((err) => {
+        console.error('Hintergrund-Entfernung fehlgeschlagen:', err);
+        // Fallback: Originalbild verwenden
+        state.cutoutDataUrl = dataUrl;
+        state.finalDataUrl = dataUrl;
+        showInView(dataUrl);
+        resolve(dataUrl);
+      });
+    };
+    img.onerror = () => {
+      console.error('Bild konnte nicht geladen werden');
+      state.cutoutDataUrl = dataUrl;
+      state.finalDataUrl = dataUrl;
+      showInView(dataUrl);
+      resolve(dataUrl);
+    };
+    img.src = dataUrl;
+  });
 }
 
 /**
@@ -46,34 +99,7 @@ export function handleFile(file) {
   if (procOverlay) procOverlay.style.display = 'flex';
 
   const reader = new FileReader();
-  reader.onload = (e) => {
-    state.originalDataUrl = e.target.result;
-
-    const skipCheckbox = $('skipBgRemoval');
-    if (skipCheckbox && skipCheckbox.checked) {
-      state.cutoutDataUrl = state.originalDataUrl;
-      state.finalDataUrl = state.originalDataUrl;
-      showInView(state.finalDataUrl);
-      return;
-    }
-
-    const img = new Image();
-    img.onload = () => {
-      const workCanvas = $('workCanvas');
-      removeBackground(img, workCanvas).then((url) => {
-        state.cutoutDataUrl = url;
-        state.finalDataUrl = url;
-        showInView(url);
-      }).catch((err) => {
-        console.error('Hintergrund-Entfernung fehlgeschlagen:', err);
-        // Fallback: Originalbild verwenden
-        state.cutoutDataUrl = state.originalDataUrl;
-        state.finalDataUrl = state.originalDataUrl;
-        showInView(state.originalDataUrl);
-      });
-    };
-    img.src = state.originalDataUrl;
-  };
+  reader.onload = (e) => { processDataUrl(e.target.result); };
 
   reader.onerror = () => {
     console.error('Datei konnte nicht gelesen werden');

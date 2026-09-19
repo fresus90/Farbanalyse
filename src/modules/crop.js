@@ -4,7 +4,8 @@
  */
 
 import { state, $ } from '../state.js';
-import { showInView } from './upload.js';
+import { processDataUrl } from './upload.js';
+import { showScreen } from './screens.js';
 
 /**
  * Crop initialisieren
@@ -13,15 +14,23 @@ export function initCrop() {
   const img = $('cropSourceImg');
   if (!img) return;
 
-  img.src = state.originalDataUrl;
-  img.onload = () => {
+  const ready = () => {
     const wrap = $('cropWrap');
-    if (wrap) {
+    if (wrap && img.naturalWidth > 0) {
       wrap.style.height = (wrap.offsetWidth * (img.naturalHeight / img.naturalWidth)) + 'px';
     }
     state.crop.box = { x: 5, y: 5, w: 90, h: 90 };
     renderCropBox();
   };
+
+  img.onload = ready;
+  if (img.src === state.originalDataUrl) {
+    // Gleiche src erneut zuweisen loest kein load-Event aus — sonst bliebe die
+    // Wrap-Hoehe beim zweiten Oeffnen des Crop-Tools auf dem alten Wert stehen.
+    if (img.complete) ready();
+  } else {
+    img.src = state.originalDataUrl;
+  }
 
   setupCropEvents();
 }
@@ -107,6 +116,7 @@ function setupCropEvents() {
   });
 
   function onMove(e) {
+    if (!state.crop.dragging && !state.crop.resizing) return;
     const p = getPos(e);
     if (state.crop.dragging) {
       const nx = Math.max(0, Math.min(p.x - state.crop.startX, 100 - state.crop.box.w));
@@ -140,19 +150,25 @@ function setupCropEvents() {
     state.crop.resizing = null;
   }
 
-  wrap.addEventListener('mousemove', onMove);
-  wrap.addEventListener('mouseup', onEnd);
-  wrap.addEventListener('touchmove', onMove, { passive: false });
-  wrap.addEventListener('touchend', onEnd);
+  // FIX: lagen vorher auf #cropWrap. Liess man die Maus ausserhalb des Wraps
+  // los, kam das mouseup nie an — state.crop.dragging blieb true und der Rahmen
+  // klebte beim naechsten Ueberfahren am Cursor. compare.js macht es mit
+  // window-Listenern richtig; crop.js zieht jetzt nach.
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchend', onEnd);
+  window.addEventListener('touchcancel', onEnd);
 
   // Cleanup-Funktion speichern
   state.crop._cleanupFn = () => {
     box.removeEventListener('mousedown', onBoxMouseDown);
     box.removeEventListener('touchstart', onBoxTouchStart);
-    wrap.removeEventListener('mousemove', onMove);
-    wrap.removeEventListener('mouseup', onEnd);
-    wrap.removeEventListener('touchmove', onMove);
-    wrap.removeEventListener('touchend', onEnd);
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onEnd);
+    window.removeEventListener('touchmove', onMove);
+    window.removeEventListener('touchend', onEnd);
+    window.removeEventListener('touchcancel', onEnd);
     handleCleanups.forEach(fn => fn());
   };
 }
@@ -176,9 +192,6 @@ export function applyCrop() {
   wc.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
   const cropped = wc.toDataURL('image/png');
-  state.originalDataUrl = cropped;
-  state.cutoutDataUrl = cropped;
-  state.finalDataUrl = cropped;
 
   // Cleanup
   if (state.crop._cleanupFn) {
@@ -186,9 +199,13 @@ export function applyCrop() {
     state.crop._cleanupFn = null;
   }
 
-  $('editMode').style.display = 'none';
-  $('viewMode').style.display = 'block';
-  showInView(state.finalDataUrl);
+  showScreen('view');
+
+  // FIX: vorher wurde das beschnittene Bild direkt als cutoutDataUrl gesetzt.
+  // Beschnitten wird aber das ORIGINAL (cropSourceImg.src = originalDataUrl),
+  // also war der Hintergrund nach "Beschneiden -> Uebernehmen" wieder da.
+  // processDataUrl() stellt erneut frei.
+  processDataUrl(cropped);
 }
 
 /**

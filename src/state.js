@@ -14,6 +14,9 @@ export const state = {
   // Aktiver Farbtyp
   activeTypeKey: 'summer_cool',
 
+  // Ergebnis der automatischen Analyse (null = noch keine gelaufen)
+  analysis: null,
+
   // UI
   currentSwatch: null,
   labelTimer: null,
@@ -91,7 +94,24 @@ export function resetAll() {
   state.finalDataUrl = null;
   state.obPhotoDataUrl = null;
   state.currentSwatch = null;
+  state.analysis = null;
   resetTouchup();
+
+  // FIX: crop und compare blieben beim Zuruecksetzen stehen — inklusive noch
+  // registrierter Event-Listener und einer alten Crop-Box.
+  if (state.crop._cleanupFn) state.crop._cleanupFn();
+  Object.assign(state.crop, {
+    dragging: false, resizing: null, startX: 0, startY: 0,
+    box: { x: 5, y: 5, w: 90, h: 90 }, _origBox: null, _cleanupFn: null
+  });
+
+  if (state.compare._cleanupFn) state.compare._cleanupFn();
+  Object.assign(state.compare, {
+    dividerPct: 50, dragging: false,
+    left:  { typeKey: '', color: '#4a7fa5', gradActive: false },
+    right: { typeKey: '', color: '#1a2e4a', gradActive: false },
+    _cleanupFn: null
+  });
 }
 
 /**

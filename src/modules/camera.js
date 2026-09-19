@@ -86,6 +86,13 @@ export function capturePhoto() {
   const wc = $('workCanvas');
   if (!video || !wc) return;
 
+  // FIX: vor 'loadedmetadata' ist videoWidth 0 — das ergab ein 0x0-Canvas und
+  // toDataURL() lieferte "data:,", also ein kaputtes Bild ohne Fehlermeldung.
+  if (!video.videoWidth || !video.videoHeight) {
+    console.warn('Kamera noch nicht bereit — Aufnahme verworfen');
+    return;
+  }
+
   wc.width = video.videoWidth;
   wc.height = video.videoHeight;
   const ctx = wc.getContext('2d');
@@ -121,23 +128,19 @@ function showCameraError(msg) {
     }
   }
 
+  // FIX: hier stand ein "App herunterladen & lokal oeffnen"-Button, der
+  // document.documentElement.outerHTML als Datei gespeichert hat. Im Vite-Build
+  // sind JS und CSS externe Bundles — die gespeicherte Datei referenzierte
+  // /assets/main-*.js und war per file:// eine leere Seite. Der Button wurde
+  // ausgerechnet dann angeboten, wenn die Kamera nicht funktioniert.
+  // Stattdessen jetzt der Weg, der in dieser Situation tatsaechlich traegt:
+  // ein Foto aus der Galerie waehlen.
   e.innerHTML =
     `<p style="font-size:.68rem;color:#c07878;line-height:1.5;margin-bottom:10px;">⚠️ ${msg}</p>` +
-    `<button id="downloadFallbackBtn" style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#4a7fa5,#3a6a90);border:none;color:#fff;font-family:sans-serif;font-size:.76rem;cursor:pointer;">⬇️ App herunterladen & lokal öffnen</button>`;
+    `<button id="cameraFallbackBtn" style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#4a7fa5,#3a6a90);border:none;color:#fff;font-family:sans-serif;font-size:.76rem;cursor:pointer;">🖼 Stattdessen ein vorhandenes Foto wählen</button>`;
 
-  const btn = $('downloadFallbackBtn');
-  if (btn) btn.addEventListener('click', downloadAsHtml);
-}
-
-function downloadAsHtml() {
-  const src = document.documentElement.outerHTML;
-  const blob = new Blob([src], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'farbanalyse.html';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const btn = $('cameraFallbackBtn');
+  if (btn) btn.addEventListener('click', confirmGuide);
 }
 
 /**

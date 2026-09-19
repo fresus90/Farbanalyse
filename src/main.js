@@ -18,26 +18,27 @@ import { initColorView, onTypeChange } from './modules/colorView.js';
 import { initUpload } from './modules/upload.js';
 import { initCamera } from './modules/camera.js';
 import { initCrop, applyCrop, destroyCrop } from './modules/crop.js';
-import { initTouchup, applyTouchup, cleanupKeyListener, setTool, doUndo, resetToOriginal } from './modules/touchup.js';
+import { initTouchup, applyTouchup, cleanupKeyListener, cleanupWheelListener, setTool, doUndo, resetToOriginal } from './modules/touchup.js';
 import { openCompare, closeCompare, initCompare } from './modules/compare.js';
+import { initAutoAnalysis, resetAutoAnalysis } from './modules/autoAnalysis.js';
+import { showScreen } from './modules/screens.js';
 
 // ══════════════════════════════════════
 // EDIT MODE
 // ══════════════════════════════════════
 
 function openEdit() {
-  $('viewMode').style.display = 'none';
-  $('editMode').style.display = 'block';
+  showScreen('edit');
   switchTab('crop');
   initCrop();
 }
 
 function cancelEdit() {
-  // FIX: Touchup-Keylistener auch bei Abbrechen aufräumen
+  // FIX: Touchup-Key- UND Wheel-Listener auch bei Abbrechen aufräumen
   cleanupKeyListener();
+  cleanupWheelListener();
   destroyCrop();
-  $('editMode').style.display = 'none';
-  $('viewMode').style.display = 'block';
+  showScreen('view');
 }
 
 function applyEdit() {
@@ -81,6 +82,7 @@ function resetView() {
   const fileInput = $('fileInput');
   if (fileInput) fileInput.value = '';
 
+  resetAutoAnalysis();
   resetAll();
 }
 
@@ -94,11 +96,10 @@ function init() {
   initUpload();
   initCamera();
   initCompare();
+  initAutoAnalysis();
 
   // View anzeigen
-  const vm = $('viewMode');       if (vm) vm.style.display = 'block';
-  const ts = $('typeSelectorWrap'); if (ts) ts.style.display = 'block';
-  const tc = $('typeCard');        if (tc) tc.style.display = 'flex';
+  showScreen('view');
 
   // Edit-Buttons
   const editBtn = $('editBtn');
@@ -147,14 +148,3 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
-
-// Globale Exports für HTML-onclick Kompatibilität (Übergangsphase)
-// Diese können schrittweise durch addEventListener ersetzt werden
-window._app = {
-  onTypeChange,
-  openCompare,
-  closeCompare,
-  setTool,
-  doUndo,
-  resetToOriginal
-};

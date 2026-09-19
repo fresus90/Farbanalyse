@@ -1,9 +1,10 @@
 name = "farbanalyse"
 compatibility_date = "2024-09-01"
 
-# Cloudflare Pages – Build-Konfiguration
+# Cloudflare Pages
 # Build command: npm run build
-# Build output directory: dist
-
-[site]
-bucket = "./dist"
+#
+# FIX: hier stand [site] bucket = "./dist". Das ist Workers Sites (legacy) und
+# setzt einen Worker-Einstiegspunkt voraus, den es in diesem Projekt nicht gibt.
+# Fuer Pages ist pages_build_output_dir der richtige Schluessel.
+pages_build_output_dir = "dist"

@@ -5,6 +5,7 @@
 
 import { state, $ } from '../state.js';
 import { colorTypes } from './colorView.js';
+import { showScreen } from './screens.js';
 
 const cmp = state.compare;
 
@@ -52,8 +53,7 @@ export function openCompare() {
   const ci = $('cmpFaceImg');
   if (ci) ci.src = state.finalDataUrl;
 
-  $('viewMode').style.display = 'none';
-  $('compareMode').style.display = 'block';
+  showScreen('compare');
 
   updateCmpDivider();
   setupCmpDrag();
@@ -65,8 +65,7 @@ export function closeCompare() {
     cmp._cleanupFn();
     cmp._cleanupFn = null;
   }
-  $('compareMode').style.display = 'none';
-  $('viewMode').style.display = 'block';
+  showScreen('view');
 }
 
 /**

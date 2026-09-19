@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farbanalyse — Debug v6</title>
+<title>Farbanalyse — Debug v7</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -91,7 +91,7 @@
 
 <div class="hdr">
   <h1>🔬 Erscheinungsbild-Analyse</h1>
-  <span class="tag">v6 — Auto-Landmarks + Verschieb- & Skalierbar</span>
+  <span class="tag">v7 — Auto-Landmarks + Verschieb- & Skalierbar</span>
 </div>
 
 <div class="upload" id="uploadArea">
@@ -130,7 +130,7 @@
 <img id="sourceImg" style="display:none;" crossorigin="anonymous">
 
 <script type="module">
-import { initSkinAnalysis, getAutoRegions, getDefaultRegions, analyzeSkinFromRegions, labToRgb } from './src/modules/skinAnalysis.js?v=6';
+import { initSkinAnalysis, getAutoRegions, getDefaultRegions, analyzeSkinFromRegions, labToRgb } from './src/modules/skinAnalysis.js?v=7';
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput  = document.getElementById('fileInput');
@@ -384,23 +384,33 @@ function renderRegion(pid, label, d) {
 
 function renderFeatures(f) {
   const el = document.getElementById('featuresPanel');
-  const wCls = f.overallWarmth > 0.55 ? 'warm' : f.overallWarmth < 0.40 ? 'cool' : 'soft';
+  // Nicht gemessene Dimensionen kommen als null zurück und werden als solche
+  // angezeigt, statt einen Platzhalter als Messwert auszugeben.
+  const num = (v, d = 1, suf = '') => v === null || v === undefined ? '—' : v.toFixed(d) + suf;
+  const pct = (v) => v === null || v === undefined ? '—' : (v * 100).toFixed(0) + '%';
+  const wCls = f.overallWarmth === null ? ''
+    : f.overallWarmth > 0.55 ? 'warm'
+    : f.overallWarmth < 0.40 ? 'cool' : 'soft';
+
   const rows = [
-    ['ITA', f.skinIta.toFixed(1), f.skinItaCategory],
-    ['Skin Hue', f.skinHue.toFixed(1) + '°', ''],
-    ['Skin Chroma', f.skinChroma.toFixed(1), ''],
-    ['Skin Warmth', (f.skinWarmth * 100).toFixed(0) + '%', ''],
-    ['Hair Depth (L*)', f.hairDepth.toFixed(1), ''],
-    ['Hair Warmth', (f.hairWarmth * 100).toFixed(0) + '%', ''],
-    ['Iris Warmth', (f.irisWarmth * 100).toFixed(0) + '%', ''],
-    ['Kontrast Haut↔Haar', f.skinHairContrast.toFixed(1), 'ΔE2000'],
-    ['Overall Warmth', (f.overallWarmth * 100).toFixed(0) + '%', wCls],
-    ['Weißabgleich', f.whiteBalanceApplied ? '✓ Aktiv' : '— Nicht verfügbar', '']
+    ['Skin Depth (L*)', num(f.skinDepth), 'Matching-Achse', ''],
+    ['ITA', num(f.skinIta), f.skinItaCategory + ' · nur Anzeige', ''],
+    ['Skin Hue', num(f.skinHue, 1, '°'), '', ''],
+    ['Skin Chroma', num(f.skinChroma), '', ''],
+    ['Skin Warmth', pct(f.skinWarmth), '', ''],
+    ['Hair Depth (L*)', num(f.hairDepth), f.hairDepth === null ? 'nicht gemessen' : '', ''],
+    ['Hair Warmth', pct(f.hairWarmth), f.hairWarmth === null ? 'unbestimmt' : '', ''],
+    ['Iris Warmth', pct(f.irisWarmth), f.irisWarmth === null ? 'unbestimmt' : '', ''],
+    ['Kontrast Haut↔Haar', num(f.skinHairContrast), 'ΔE2000', ''],
+    ['Overall Warmth', pct(f.overallWarmth), wCls, wCls],
+    ['Weißabgleich', f.whiteBalanceApplied ? '✓ Aktiv' : '— Nicht verfügbar', '', '']
   ];
-  el.innerHTML = rows.map(([l, v, h]) => `
+  // FIX: die Einfärbung prüfte v.includes('warm') auf dem Wert ("62%") statt auf
+  // der Klasse — sie hat nie gegriffen.
+  el.innerHTML = rows.map(([l, v, h, cls]) => `
     <div class="mr">
       <span class="ml">${l}${h ? ` <span class="h">${h}</span>` : ''}</span>
-      <span class="mv ${v.includes('warm') ? 'warm' : v.includes('cool') ? 'cool' : ''}">${v}</span>
+      <span class="mv ${cls || ''}">${v}</span>
     </div>`).join('');
 }
 
@@ -418,8 +428,10 @@ function renderScores(scores, confidence) {
         ${Object.entries(s.fits).map(([k, v]) => `<span class="fit">${k}:${v}%</span>`).join(' ')}
       </div>
     </div>`).join('');
-  const cls = confidence >= 30 ? 'hi' : confidence >= 15 ? 'md' : 'lo';
-  const lbl = confidence >= 30 ? 'Hoch' : confidence >= 15 ? 'Mittel' : 'Niedrig';
+  // Schwellen passen zur neuen Confidence-Skala (vorher: >=30 "Hoch", was die
+  // alte Formel praktisch nie erreicht hat).
+  const cls = confidence >= 62 ? 'hi' : confidence >= 42 ? 'md' : 'lo';
+  const lbl = confidence >= 62 ? 'Hoch' : confidence >= 42 ? 'Mittel' : 'Niedrig';
   el.innerHTML += `<div class="cb ${cls}">Confidence: ${confidence}% · ${lbl}</div>`;
 }
 </script>

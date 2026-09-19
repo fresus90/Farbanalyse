@@ -65,3 +65,31 @@
   padding: 3px 2px; text-align: center;
   background: #181b22; color: #8a929e; line-height: 1.3;
 }
+
+/* ── Banner der automatischen Farbtyp-Bestimmung ── */
+.analysis-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #1e2a38;
+  background: #12161e;
+}
+.analysis-banner.busy { border-color: rgba(74,127,165,.35); }
+.analysis-banner.ok   { border-color: rgba(106,170,122,.35); background: rgba(106,170,122,.07); }
+.analysis-banner.info { border-color: rgba(232,160,64,.30); background: rgba(232,160,64,.06); }
+
+.analysis-banner .ab-icon { font-size: .85rem; line-height: 1.35; flex-shrink: 0; }
+.analysis-banner .ab-body { flex: 1; min-width: 0; }
+.analysis-banner .ab-title {
+  font-size: .76rem; color: #c8d8e4; letter-spacing: .02em; margin-bottom: 2px;
+}
+.analysis-banner .ab-sub { font-size: .6rem; color: #6a8a9a; line-height: 1.5; }
+.analysis-banner .ab-dismiss {
+  flex-shrink: 0; background: none; border: none; color: #3a5a6a;
+  font-size: .7rem; cursor: pointer; padding: 0 2px; line-height: 1.3;
+}
+.analysis-banner .ab-dismiss:hover { color: #8ab8d4; }

@@ -5,6 +5,8 @@ Persönliche Farbanalyse-App — Finde deinen saisonalen Farbtyp und entdecke, w
 ## Features
 
 - **12 Farbtypen** — Frühling, Sommer, Herbst, Winter (je 3 Untertypen)
+- **Automatische Farbtyp-Bestimmung** — MediaPipe Face Landmarker, Lab-Clustering
+  von Haut/Haar/Iris, Sklera-Weißabgleich, 7-dimensionales Typ-Matching
 - **Foto-Upload & Kamera** — Live-Kamera mit Gesichts-Guide oder Datei-Upload
 - **Hintergrund-Entfernung** — Client-seitiges Freistellen per Canvas
 - **Crop & Touch-Up** — Bildausschnitt anpassen, Freistellen nachbessern
@@ -44,6 +46,9 @@ Cloudflare Pages: Build-Command `npm run build`, Output-Directory `dist`.
 │   │   └── colorTypes.json ← Alle 12 Farbtyp-Definitionen
 │   ├── modules/
 │   │   ├── colorView.js    ← Haupt-View: Swatches, Stage, Farbvorschau
+│   │   ├── skinAnalysis.js ← Erscheinungsbild-Analyse & Farbtyp-Matching
+│   │   ├── autoAnalysis.js ← bindet die Analyse an die App an
+│   │   ├── screens.js      ← Umschalten View / Edit / Compare
 │   │   ├── camera.js       ← Live-Kamera + Guide-Modal
 │   │   ├── crop.js         ← Crop-Tool
 │   │   ├── touchup.js      ← Freistell-Editor (Erase/Restore)

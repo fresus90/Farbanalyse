@@ -5,11 +5,15 @@
 
 import { state, $, resetTouchup } from '../state.js';
 import { showInView } from './upload.js';
+import { showScreen } from './screens.js';
 
 const tu = state.touchup;
 
-// Referenz auf den keydown-Handler, damit er entfernt werden kann
+// Referenzen auf Listener ausserhalb des Canvas, damit sie entfernt werden
+// koennen. Das Canvas selbst wird bei jedem initTouchup() per replaceWith()
+// ersetzt, dort sammelt sich nichts an — bei #touchupWrap und document schon.
 let undoKeyHandler = null;
+let wheelCleanup = null;
 
 export function setTool(t) {
   tu.tool = t;
@@ -94,8 +98,7 @@ function drawCursor(sx, sy) {
   cc.height = cc.offsetHeight;
   ctx.clearRect(0, 0, cc.width, cc.height);
 
-  const sv = parseInt($('tuStrength').value);
-  const cr = (Math.round(sv * 2) + 10) * (tu.canvas.getBoundingClientRect().width / tu.W);
+  const cr = (brushRadius() + 10) * (tu.canvas.getBoundingClientRect().width / tu.W);
 
   ctx.beginPath();
   ctx.arc(sx, sy, cr, 0, Math.PI * 2);
@@ -115,14 +118,20 @@ function clearCursor() {
   }
 }
 
+/** Pinselradius aus dem Slider, mit Fallback falls das Element fehlt. */
+function brushRadius() {
+  const el = $('tuStrength');
+  const sv = el ? parseInt(el.value, 10) : 35;
+  return Math.round((Number.isFinite(sv) ? sv : 35) * 2);
+}
+
 function applyBrush(e) {
   if (!tu.imageData) return;
   const pos = getXY(e);
   const d = tu.imageData.data, od = tu.origImageData.data;
   const W = tu.W, H = tu.H;
 
-  const sv = parseInt($('tuStrength').value);
-  const radius = Math.round(sv * 2) + 10;
+  const radius = brushRadius() + 10;
   const r2 = radius * radius;
 
   for (let py = Math.max(0, pos.y - radius); py <= Math.min(H - 1, pos.y + radius); py++) {
@@ -153,8 +162,16 @@ function applyBrush(e) {
  * Touchup-Editor initialisieren
  */
 export function initTouchup() {
+  // FIX: jeder Tab-Wechsel zu "Freistellen" rief initTouchup() auf und haengte
+  // einen weiteren wheel- bzw. keydown-Listener an, ohne den alten zu entfernen.
+  // Nach 5 Wechseln zoomte eine Mausrad-Raste um 1.15^5 und ein Strg+Z machte
+  // 5 Schritte rueckgaengig.
+  cleanupKeyListener();
+  cleanupWheelListener();
+
   const wrap = $('touchupWrap');
   const oldC = $('touchupCanvas');
+  if (!oldC) return;
 
   const newC = document.createElement('canvas');
   newC.id = 'touchupCanvas';
@@ -230,11 +247,13 @@ export function initTouchup() {
 
   // Wheel zoom
   if (wrap) {
-    wrap.addEventListener('wheel', (e) => {
+    const onWheel = (e) => {
       e.preventDefault();
       const r = wrap.getBoundingClientRect();
       zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15);
-    }, { passive: false });
+    };
+    wrap.addEventListener('wheel', onWheel, { passive: false });
+    wheelCleanup = () => wrap.removeEventListener('wheel', onWheel);
   }
 
   // Touch events
@@ -300,12 +319,13 @@ export function initTouchup() {
  * Touchup anwenden und zurück zur Ansicht
  */
 export function applyTouchup() {
+  if (!tu.canvas) return;
   cleanupKeyListener();
+  cleanupWheelListener();
   state.finalDataUrl = tu.canvas.toDataURL('image/png');
   state.cutoutDataUrl = state.finalDataUrl;
   resetTouchup();
-  $('editMode').style.display = 'none';
-  $('viewMode').style.display = 'block';
+  showScreen('view');
   showInView(state.finalDataUrl);
 }
 
@@ -316,5 +336,15 @@ export function cleanupKeyListener() {
   if (undoKeyHandler) {
     document.removeEventListener('keydown', undoKeyHandler);
     undoKeyHandler = null;
+  }
+}
+
+/**
+ * Cleanup — entfernt den wheel-Listener von #touchupWrap.
+ */
+export function cleanupWheelListener() {
+  if (wheelCleanup) {
+    wheelCleanup();
+    wheelCleanup = null;
   }
 }
