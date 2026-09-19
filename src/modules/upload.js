@@ -76,6 +76,7 @@ export function processDataUrl(dataUrl) {
     state.cutoutDataUrl = dataUrl;
     state.finalDataUrl = dataUrl;
     state.cutoutMethod = 'none';
+    state.personMask = null;
     showCutoutHint('none');
     showInView(dataUrl);
     return Promise.resolve(dataUrl);
@@ -89,10 +90,11 @@ export function processDataUrl(dataUrl) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      removeBackground(img, $('workCanvas'), setProcText).then(({ url, method, reason }) => {
+      removeBackground(img, $('workCanvas'), setProcText).then(({ url, method, reason, mask }) => {
         state.cutoutDataUrl = url;
         state.finalDataUrl = url;
         state.cutoutMethod = method;
+        state.personMask = mask ?? null;
         if (method !== 'segmentation') console.info('Freistellen per Flood-Fill:', reason);
         showCutoutHint(method);
         showInView(url);

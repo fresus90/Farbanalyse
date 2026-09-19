@@ -113,6 +113,9 @@ const CHEEK_LEFT = [50, 101, 118, 117, 116, 123, 147, 213];
 const CHEEK_RIGHT = [280, 330, 347, 346, 345, 352, 376, 433];
 const FOREHEAD = [10, 67, 69, 104, 108, 151, 337, 299, 297];
 const HAIR_ANCHOR_POINTS = [10, 151, 9, 8, 107, 336];
+// Aeussere Punkte des Gesichtsovals auf Wangenhoehe — geben die Kopfbreite.
+const FACE_LEFT = 234;
+const FACE_RIGHT = 454;
 const IRIS_LEFT_CENTER = 468;
 const IRIS_RIGHT_CENTER = 473;
 const IRIS_LEFT = [468, 469, 470, 471, 472];
@@ -157,18 +160,12 @@ export async function getAutoRegions(imageEl, onStatus) {
   const skinPts = skinIndices.map(i => ({ x: lm[i].x * W, y: lm[i].y * H }));
   const skinBox = boundingBox(skinPts, W, H, 5);
 
-  const anchors = HAIR_ANCHOR_POINTS.map(i => ({ x: lm[i].x * W, y: lm[i].y * H }));
-  const topY = Math.min(...anchors.map(p => p.y));
-  const chinY = lm[152].y * H;
-  const faceHeight = chinY - topY;
-  const hairTop = Math.max(0, topY - faceHeight * 0.20);
-  const hairBot = Math.max(0, topY - faceHeight * 0.05);
-  const { minX: hairLeft, maxX: hairRight } = hairXRange(anchors, faceHeight);
+  const hr = hairRegion(lm, W, H);
   const hairBox = {
-    x: (hairLeft / W) * 100,
-    y: (hairTop / H) * 100,
-    w: ((hairRight - hairLeft) / W) * 100,
-    h: ((hairBot - hairTop) / H) * 100
+    x: (hr.minX / W) * 100,
+    y: (hr.minY / H) * 100,
+    w: ((hr.maxX - hr.minX) / W) * 100,
+    h: ((hr.maxY - hr.minY) / H) * 100
   };
 
   const irisLeftBox = irisBox(lm, IRIS_LEFT_CENTER, IRIS_LEFT, W, H);
@@ -184,20 +181,39 @@ export async function getAutoRegions(imageEl, onStatus) {
 }
 
 /**
- * Horizontale Spanne des Haar-Samplings.
- * FIX: der feste 10px-Inset liess die Spanne bei kleinen Gesichtern invertieren
- * (maxX < minX) — die Sample-Schleife lief dann null Mal und hairLab wurde still
- * null. Inset ist jetzt proportional zur Gesichtshoehe und wird verworfen,
- * sobald zu wenig Breite uebrig bliebe.
+ * Lage des Haar-Samplings ueber dem Haaransatz.
+ *
+ * FIX (Breite): Die Spanne kam aus HAIR_ANCHOR_POINTS — das sind aber alles
+ * Landmarks auf der Mittellinie (Stirnmitte, Glabella, Nasenwurzel, innere
+ * Brauenenden). Ihre x-Spanne ist die Breite der Nasenwurzel, nicht die des
+ * Kopfes. An einem echten Portraet gemessen: eine Box von 39 x 54 Pixeln, die
+ * 1055 Haarpixel lieferte. Die Breite kommt jetzt aus dem Gesichtsoval.
+ *
+ * FIX (Hoehe): Das Band lag 5 bis 20 Prozent der Gesichtshoehe ueber dem
+ * Haaransatz und traf damit die Ansatzschatten statt der Haarmasse — gemessen
+ * L* 33.6 bei tatsaechlich blondem Haar. Es reicht jetzt hoeher hinauf.
  */
-function hairXRange(anchors, faceHeight) {
-  const x0 = Math.min(...anchors.map(p => p.x));
-  const x1 = Math.max(...anchors.map(p => p.x));
-  const inset = Math.max(2, faceHeight * 0.03);
-  const minX = x0 + inset;
-  const maxX = x1 - inset;
-  if (maxX - minX < Math.max(4, faceHeight * 0.05)) return { minX: x0, maxX: x1 };
-  return { minX, maxX };
+const HAIR_BAND_TOP = 0.42;     // Anteil der Gesichtshoehe ueber dem Haaransatz
+const HAIR_BAND_BOTTOM = 0.06;
+const HAIR_HALF_WIDTH = 0.40;   // Anteil der Kopfbreite je Seite der Mitte
+
+function hairRegion(landmarks, W, H) {
+  const anchors = HAIR_ANCHOR_POINTS.map(i => ({ x: landmarks[i].x * W, y: landmarks[i].y * H }));
+  const topY = Math.min(...anchors.map(p => p.y));
+  const chinY = landmarks[152].y * H;
+  const faceHeight = chinY - topY;
+
+  const faceLeft = landmarks[FACE_LEFT].x * W;
+  const faceRight = landmarks[FACE_RIGHT].x * W;
+  const centerX = (faceLeft + faceRight) / 2;
+  const faceWidth = Math.abs(faceRight - faceLeft);
+
+  return {
+    minX: centerX - faceWidth * HAIR_HALF_WIDTH,
+    maxX: centerX + faceWidth * HAIR_HALF_WIDTH,
+    minY: Math.max(0, topY - faceHeight * HAIR_BAND_TOP),
+    maxY: Math.max(0, topY - faceHeight * HAIR_BAND_BOTTOM)
+  };
 }
 
 function boundingBox(pts, imgW, imgH, padding = 0) {
@@ -315,22 +331,17 @@ function sampleSkinPixels(pixels, W, H, landmarks) {
   return all;
 }
 
-function sampleHairPixels(pixels, W, H, landmarks, skinLab) {
-  const anchors = HAIR_ANCHOR_POINTS.map(i => ({
-    x: Math.round(landmarks[i].x * W),
-    y: Math.round(landmarks[i].y * H)
-  }));
-  const topY = Math.min(...anchors.map(p => p.y));
-  const chinY = Math.round(landmarks[152].y * H);
-  const faceHeight = chinY - topY;
-  const sampleStart = Math.max(0, topY - Math.round(faceHeight * 0.20));
-  const sampleEnd = Math.max(0, topY - Math.round(faceHeight * 0.05));
-  const { minX, maxX } = hairXRange(anchors, faceHeight);
+function sampleHairPixels(pixels, W, H, landmarks, skinLab, personMask) {
+  const { minX, maxX, minY, maxY } = hairRegion(landmarks, W, H);
 
   const raw = [];
-  for (let y = sampleStart; y <= sampleEnd; y++) {
+  for (let y = Math.round(minY); y <= Math.round(maxY); y++) {
     for (let x = Math.round(minX); x <= Math.round(maxX); x++) {
       if (x < 0 || x >= W || y < 0 || y >= H) continue;
+      // Ein hoeheres Band trifft ueber dem Kopf auf Hintergrund. Liegt eine
+      // Personenmaske vor, faellt der zuverlaessig raus — unabhaengig davon,
+      // welche Farbe der Hintergrund hat.
+      if (personMask && !isPerson(personMask, x / W, y / H)) continue;
       const idx = (y * W + x) * 4;
       const r = pixels[idx], g = pixels[idx + 1], b = pixels[idx + 2];
       const lum = 0.299 * r + 0.587 * g + 0.114 * b;
@@ -339,6 +350,13 @@ function sampleHairPixels(pixels, W, H, landmarks, skinLab) {
     }
   }
   return rejectSkinLikePixels(raw, skinLab);
+}
+
+/** Nachschlag in der Personenmaske ueber normierte Koordinaten (0..1). */
+function isPerson(mask, fx, fy) {
+  const x = Math.min(mask.width - 1, Math.max(0, Math.round(fx * (mask.width - 1))));
+  const y = Math.min(mask.height - 1, Math.max(0, Math.round(fy * (mask.height - 1))));
+  return mask.data[y * mask.width + x] > 0.6;
 }
 
 /**
@@ -392,36 +410,61 @@ function sampleIrisPixels(pixels, W, H, landmarks) {
  * Sampelt Sklera-Pixel (Augenweiss) fuer Weissabgleich.
  * Nimmt kleine Bereiche nahe der inneren Augenecken.
  */
-function sampleScleraPixels(pixels, W, H, landmarks) {
-  const result = [];
-  // Fuer beide Augen: kleiner Bereich zwischen innerem Augenrand und Iris
+function sampleScleraPixels(pixels, W, H, landmarks, skinL) {
+  // Fuer beide Augen: Bereich zwischen innerem Augenrand und Iris
   const pairs = [
     { inner: 133, outer: 33, irisCenter: IRIS_LEFT_CENTER },
     { inner: 362, outer: 263, irisCenter: IRIS_RIGHT_CENTER }
   ];
-  for (const { inner, outer, irisCenter } of pairs) {
-    // Mitte zwischen innerem Rand und Iris-Zentrum
-    const ix = landmarks[inner].x * W;
-    const iy = landmarks[inner].y * H;
-    const icx = landmarks[irisCenter].x * W;
-    const icy = landmarks[irisCenter].y * H;
-    const cx = Math.round((ix + icx) / 2);
-    const cy = Math.round((iy + icy) / 2);
-    const r = 3; // kleiner Radius
-    for (let dy = -r; dy <= r; dy++) {
-      for (let dx = -r; dx <= r; dx++) {
-        if (dx * dx + dy * dy > r * r) continue;
+
+  // Radius an der Augenbreite ausrichten statt fest bei 3 Pixeln: Ein Gesicht
+  // fuellt mal das halbe Bild und mal ein Achtel davon.
+  const eyeWidth = Math.hypot(
+    (landmarks[133].x - landmarks[33].x) * W,
+    (landmarks[133].y - landmarks[33].y) * H
+  );
+  const radius = Math.max(2, Math.round(eyeWidth * 0.16));
+
+  const window = [];
+  for (const { inner, irisCenter } of pairs) {
+    const cx = Math.round((landmarks[inner].x * W + landmarks[irisCenter].x * W) / 2);
+    const cy = Math.round((landmarks[inner].y * H + landmarks[irisCenter].y * H) / 2);
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (dx * dx + dy * dy > radius * radius) continue;
         const px = cx + dx, py = cy + dy;
         if (px < 0 || px >= W || py < 0 || py >= H) continue;
         const idx = (py * W + px) * 4;
         const rv = pixels[idx], gv = pixels[idx + 1], bv = pixels[idx + 2];
-        const lum = 0.299 * rv + 0.587 * gv + 0.114 * bv;
-        // Sklera sollte hell sein
-        if (lum > 120 && lum < 250) result.push([rv, gv, bv]);
+        window.push({ rgb: [rv, gv, bv], lum: 0.299 * rv + 0.587 * gv + 0.114 * bv });
       }
     }
   }
-  return result;
+  if (window.length < 20) return [];
+
+  // FIX: vorher entschied die feste Schranke lum > 120, ob ein Pixel als Sklera
+  // zaehlt. An einem normal belichteten Abendportraet gemessen liegt das
+  // Augenweiss im Brauenschatten bei Luminanz 51 bis 96 — kein einziges Pixel
+  // kam durch, und der Weissabgleich blieb stumm aus. Die Auswahl laeuft jetzt
+  // ueber Perzentile innerhalb des Fensters und ist damit belichtungsunabhaengig:
+  // unten fallen Wimpern, Lidfalte und Irisrand heraus, oben die Spiegelung.
+  window.sort((a, b) => a.lum - b.lum);
+  const lo = Math.floor(window.length * 0.45);
+  const hi = Math.floor(window.length * 0.95);
+  const band = window.slice(lo, hi);
+  if (!band.length) return [];
+
+  // Im Fenster muss es ueberhaupt einen helleren Bereich geben — sonst ist das
+  // Auge geschlossen oder der Messpunkt sitzt daneben.
+  const dark = window[Math.floor(window.length * 0.1)].lum;
+  const bright = band[Math.floor(band.length / 2)].lum;
+  if (bright < dark * 1.15) return [];
+
+  // Und die Sklera darf nicht deutlich dunkler sein als die Haut — dann liegt
+  // sie so tief im Schatten, dass sie als Lichtreferenz nichts taugt.
+  if (Number.isFinite(skinL) && bright < skinL * 0.9) return [];
+
+  return band.map((p) => p.rgb);
 }
 
 // ══════════════════════════════════════
@@ -449,25 +492,67 @@ function isSkinColor(r, g, b) {
 // Clustering
 // ══════════════════════════════════════
 
+/**
+ * Deterministischer Zufallsgenerator (mulberry32).
+ *
+ * k-Means++ braucht Zufall fuer die Startzentren. Mit Math.random() liefert
+ * dieselbe Datei bei jedem Aufruf ein anderes Ergebnis — an einem echten Foto
+ * gemessen: sechs Laeufe, zwei verschiedene Farbtypen, weil mal der beleuchtete
+ * und mal der beschattete Hautcluster gewann (L* 63.9 gegen 54.7). Fuer eine
+ * Beratung ist das unbrauchbar: Wer dasselbe Bild zweimal hochlaedt, muss
+ * zweimal dasselbe lesen.
+ */
+function seededRandom(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Wie oft k-Means mit unterschiedlichen Startzentren wiederholt wird. */
+const KMEANS_RESTARTS = 3;
+
+/**
+ * k-Means im Lab-Raum.
+ *
+ * Mehrere Durchlaeufe mit festen Startwerten; gewertet wird der mit der
+ * geringsten Streuung innerhalb der Cluster. Das macht das Ergebnis nicht nur
+ * reproduzierbar, sondern auch stabiler — ein einzelner unguenstiger Start
+ * entscheidet nicht mehr ueber das Ergebnis.
+ */
 function kMeansLab(labPixels, k = 3, maxIter = 20) {
   if (labPixels.length === 0) return null;
   if (labPixels.length < k) k = Math.max(1, labPixels.length);
-  const centers = [{ ...labPixels[Math.floor(Math.random() * labPixels.length)] }];
+
+  let best = null;
+  for (let attempt = 0; attempt < KMEANS_RESTARTS; attempt++) {
+    const run = kMeansOnce(labPixels, k, maxIter, seededRandom(0x9E3779B9 + attempt * 0x85EBCA6B));
+    if (!best || run.inertia < best.inertia) best = run;
+  }
+  return best;
+}
+
+function kMeansOnce(labPixels, k, maxIter, rnd) {
+  const centers = [{ ...labPixels[Math.floor(rnd() * labPixels.length)] }];
   while (centers.length < k) {
     const dists = labPixels.map(p => Math.min(...centers.map(c => deltaE76(p, c))));
     const total = dists.reduce((a, b) => a + b, 0);
-    let r = Math.random() * total, cum = 0;
+    let r = rnd() * total, cum = 0;
     let picked = -1;
     for (let i = 0; i < labPixels.length; i++) {
       cum += dists[i];
       if (cum >= r) { picked = i; break; }
     }
-    // FIX: Fliesskomma-Drift konnte dazu fuehren, dass cum am Ende knapp unter r
-    // bleibt — dann wurde kein Zentrum gesetzt und die while-Schleife lief endlos.
+    // Fliesskomma-Drift kann dazu fuehren, dass cum am Ende knapp unter r
+    // bleibt — dann wuerde kein Zentrum gesetzt und die Schleife liefe endlos.
     if (picked < 0) picked = labPixels.length - 1;
     centers.push({ ...labPixels[picked] });
   }
-  let asgn = new Array(labPixels.length).fill(0);
+
+  const asgn = new Array(labPixels.length).fill(0);
   for (let iter = 0; iter < maxIter; iter++) {
     let changed = false;
     for (let i = 0; i < labPixels.length; i++) {
@@ -487,10 +572,21 @@ function kMeansLab(labPixels, k = 3, maxIter = 20) {
       if (cnt > 0) centers[j] = { L: sL / cnt, a: sA / cnt, b: sB / cnt };
     }
   }
+
   const sizes = new Array(k).fill(0);
-  for (const a of asgn) sizes[a]++;
+  let inertia = 0;
+  for (let i = 0; i < labPixels.length; i++) {
+    sizes[asgn[i]]++;
+    const d = deltaE76(labPixels[i], centers[asgn[i]]);
+    inertia += d * d;
+  }
   const domIdx = sizes.indexOf(Math.max(...sizes));
-  return { dominant: centers[domIdx], all: centers.map((c, i) => ({ ...c, size: sizes[i] })), totalPixels: labPixels.length };
+  return {
+    dominant: centers[domIdx],
+    all: centers.map((c, i) => ({ ...c, size: sizes[i] })),
+    totalPixels: labPixels.length,
+    inertia
+  };
 }
 
 function averageLab(labPixels) {
@@ -508,7 +604,7 @@ function averageLab(labPixels) {
  * Die Sklera sollte idealerweise neutral (a*≈0, b*≈0) sein.
  * Gibt einen Offset zurueck, der auf Lab-Werte angewendet werden kann.
  */
-function computeWhiteBalanceOffset(scleraRgb) {
+function computeWhiteBalanceOffset(scleraRgb, skinL) {
   if (scleraRgb.length < 10) return null; // zu wenige Pixel
   const labs = scleraRgb.map(([r, g, b]) => rgbToLab(r, g, b));
   const avg = averageLab(labs);
@@ -516,13 +612,13 @@ function computeWhiteBalanceOffset(scleraRgb) {
 
   // Ist der Bereich zu dunkel, sind es vermutlich keine Sklera-Pixel.
   //
-  // FIX: die Schwelle lag bei L* 60 und hat damit nie ausgeloest. Die Sklera
-  // liegt im Schatten der Lider und erreicht in einem normal belichteten Foto
-  // selten L* 60 — an einem echten Portraet gemessen: mittlere Helligkeit 133
-  // von 255, also L* ~56. Der Weissabgleich, das Kernstueck von v5, war damit
-  // in der Praxis dauerhaft abgeschaltet. 45 laesst Augen im Lidschatten zu und
-  // schliesst Wimpern, Pupille und Lidfalte weiterhin aus.
-  if (avg.L < 45) return null;
+  // FIX: die Schwelle war absolut (erst L* 60, dann 45) und damit an die
+  // Belichtung gebunden — bei einem Abendportraet fiel sie durch, obwohl das
+  // Augenweiss sauber gemessen war. Sie richtet sich jetzt nach der gemessenen
+  // Haut: Die Sklera muss hell genug relativ zum Gesicht sein, nicht hell auf
+  // einer absoluten Skala.
+  const minL = Number.isFinite(skinL) ? Math.max(25, skinL * 0.55) : 45;
+  if (avg.L < minL) return null;
 
   // Korrektur: wie weit weicht die Sklera von neutral ab? Nur a und b, nicht L.
   //
@@ -796,6 +892,54 @@ function rangeScoreSmooth(value, min, max) {
 }
 
 // ══════════════════════════════════════
+// Aufnahmequalitaet
+// ══════════════════════════════════════
+
+/**
+ * Beurteilt, ob das Foto eine belastbare Farbanalyse zulaesst.
+ *
+ * Ohne diese Pruefung gibt die App auf ein ungeeignetes Foto genauso
+ * selbstbewusst einen Farbtyp aus wie auf ein gutes. An einem Abendportraet
+ * unter Kunstlicht gemessen: Hautchroma 35.7 statt 16.7 bei Tageslicht, der
+ * Weissabgleich an der Kappungsgrenze, drei Farbtypen innerhalb von 17 Punkten.
+ * Das Ergebnis ist dann kein Ergebnis, und der Nutzer soll erfahren, woran es
+ * liegt — die Aufnahmehinweise der App nennen genau diese Punkte.
+ *
+ * Die Schwellen sind an zwei echten Aufnahmen derselben Person kalibriert
+ * (Tageslicht gegen Abendlicht) und bewusst grosszuegig: Ein Hinweis, der zu
+ * oft erscheint, wird ignoriert.
+ */
+function assessQuality({ skinCluster, features, wbOffset, confidence }) {
+  const hints = [];
+
+  // Farbstich: Weissabgleich an der Kappungsgrenze (+-8)
+  if (wbOffset && (Math.abs(wbOffset.da) >= 7.9 || Math.abs(wbOffset.db) >= 7.9)) {
+    hints.push('Starker Farbstich im Foto — vermutlich Kunstlicht. Tageslicht am Fenster liefert deutlich verlässlichere Werte.');
+  }
+
+  // Selbst nach Korrektur zu bunte Haut: Restfarbstich, Rötung oder Schatten
+  if (features.skinChroma > 28) {
+    hints.push('Der Hautton misst ungewöhnlich farbintensiv. Das deutet auf farbiges Licht, Rötung oder starke Schatten hin.');
+  }
+
+  // Ungleichmaessige Ausleuchtung: Streuung zwischen den Hautclustern
+  const big = skinCluster?.all?.filter((c) => c.size > skinCluster.totalPixels * 0.12) ?? [];
+  if (big.length > 1) {
+    const spread = Math.max(...big.map((c) => c.L)) - Math.min(...big.map((c) => c.L));
+    if (spread > 14) {
+      hints.push('Das Gesicht ist ungleichmäßig ausgeleuchtet. Licht von vorne statt von der Seite oder von oben.');
+    }
+  }
+
+  // Zu kleine Stichprobe
+  if (skinCluster && skinCluster.totalPixels < 8000) {
+    hints.push('Wenig auswertbare Hautfläche — geh näher heran oder halte die Kamera auf Augenhöhe.');
+  }
+
+  return { reliable: hints.length === 0 && confidence >= 30, hints };
+}
+
+// ══════════════════════════════════════
 // Feature-Berechnung (gemeinsame Pipeline)
 // ══════════════════════════════════════
 
@@ -838,6 +982,7 @@ function computeFeaturesAndMatch(skinLab, hairLab, irisLab, skinCluster, hairClu
   };
 
   const { scores, confidence, dimensionsUsed } = matchColorType(features);
+  const quality = assessQuality({ skinCluster, features, wbOffset, confidence });
 
   return {
     success: true,
@@ -845,7 +990,7 @@ function computeFeaturesAndMatch(skinLab, hairLab, irisLab, skinCluster, hairClu
     hair: { lab: hairLabWb, labRaw: hairLab, rgb: hairLabWb ? labToRgb(hairLabWb) : null, cluster: hairCluster, pixelCount: hairCount },
     iris: { lab: irisLabWb, labRaw: irisLab, rgb: irisLabWb ? labToRgb(irisLabWb) : null, pixelCount: irisCount },
     features, scores, topType: scores[0].key, topConfidence: confidence,
-    dimensionsUsed,
+    dimensionsUsed, quality,
     whiteBalance: wbOffset ? { offset: wbOffset } : null
   };
 }
@@ -854,7 +999,7 @@ function computeFeaturesAndMatch(skinLab, hairLab, irisLab, skinCluster, hairClu
 // Haupt-Analyse (Landmark-basiert)
 // ══════════════════════════════════════
 
-export async function analyzeSkin(imageEl, onStatus) {
+export async function analyzeSkin(imageEl, onStatus, personMask = null) {
   if (!isInitialized) {
     try { await initSkinAnalysis(onStatus); } catch (err) {
       return { success: false, error: 'Gesichts-Erkennung konnte nicht geladen werden: ' + err.message };
@@ -869,20 +1014,22 @@ export async function analyzeSkin(imageEl, onStatus) {
   const landmarks = result.faceLandmarks[0];
   const { pixels, W, H } = getImagePixels(imageEl);
 
-  // Sklera-Weissabgleich
-  const scleraRgb = sampleScleraPixels(pixels, W, H, landmarks);
-  const wbOffset = computeWhiteBalanceOffset(scleraRgb);
-  if (wbOffset) {
-    console.log('[skinAnalysis] Weissabgleich angewendet:', wbOffset, `(${scleraRgb.length} Sklera-Pixel)`);
-  }
-
+  // Haut zuerst: Sie ist die Bezugsgroesse dafuer, ob die Sklera hell genug
+  // gemessen wurde, um als Lichtreferenz zu taugen.
   const skinRgb = sampleSkinPixels(pixels, W, H, landmarks);
   if (skinRgb.length < 50) return { success: false, error: `Zu wenige Hautpixel (${skinRgb.length}).` };
   const skinLabs = skinRgb.map(([r, g, b]) => rgbToLab(r, g, b));
   const skinCluster = kMeansLab(skinLabs, 3);
   const skinLab = skinCluster.dominant;
 
-  const hairRgb = sampleHairPixels(pixels, W, H, landmarks, skinLab);
+  // Sklera-Weissabgleich
+  const scleraRgb = sampleScleraPixels(pixels, W, H, landmarks, skinLab.L);
+  const wbOffset = computeWhiteBalanceOffset(scleraRgb, skinLab.L);
+  if (wbOffset) {
+    console.log('[skinAnalysis] Weissabgleich angewendet:', wbOffset, `(${scleraRgb.length} Sklera-Pixel)`);
+  }
+
+  const hairRgb = sampleHairPixels(pixels, W, H, landmarks, skinLab, personMask);
   const hairLabs = hairRgb.map(([r, g, b]) => rgbToLab(r, g, b));
   const hairCluster = hairRgb.length >= 20 ? kMeansLab(hairLabs, 2) : null;
   const hairLab = hairCluster ? hairCluster.dominant : (hairLabs.length > 0 ? averageLab(hairLabs) : null);

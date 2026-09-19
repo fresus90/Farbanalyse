@@ -20,6 +20,10 @@ export const state = {
   // Welches Freistell-Verfahren zuletzt lief: 'segmentation' | 'floodfill' | 'none'
   cutoutMethod: null,
 
+  // Personenmaske aus dem Freistellen; die Analyse grenzt damit das Haar
+  // gegen den Hintergrund ab. null = keine verfuegbar.
+  personMask: null,
+
   // UI
   currentSwatch: null,
   labelTimer: null,
@@ -99,6 +103,7 @@ export function resetAll() {
   state.currentSwatch = null;
   state.analysis = null;
   state.cutoutMethod = null;
+  state.personMask = null;
   resetTouchup();
 
   // FIX: crop und compare blieben beim Zuruecksetzen stehen — inklusive noch

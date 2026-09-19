@@ -66,7 +66,7 @@ export async function runAutoAnalysis() {
   try {
     const { analyzeSkin } = await import('./skinAnalysis.js');
     const img = await loadImage(url);
-    const result = await analyzeSkin(img);
+    const result = await analyzeSkin(img, null, state.personMask);
 
     if (!result.success) {
       state.analysis = null;
@@ -82,9 +82,18 @@ export async function runAutoAnalysis() {
     const top = result.scores[0];
     const second = result.scores[1];
     const level = result.topConfidence >= 62 ? 'hohe' : result.topConfidence >= 42 ? 'mittlere' : 'geringe';
-    banner('ok', `Dein Farbtyp: ${top.name}`,
-      `${level} Sicherheit (${result.topConfidence}%) · nächster: ${second.name} (${second.pct}%) · ` +
-      `unten änderbar`);
+    const base = `${level} Sicherheit (${result.topConfidence}%) · nächster: ${second.name} (${second.pct}%)`;
+
+    // Sagt das Foto selbst, dass es nichts taugt, hat das Vorrang vor dem
+    // Ergebnis — ein Farbtyp aus einem Kunstlichtfoto sieht genauso
+    // selbstbewusst aus wie einer aus gutem Tageslicht.
+    const hints = result.quality?.hints ?? [];
+    if (hints.length) {
+      banner('info', `Unsicheres Ergebnis: ${top.name}`,
+        `${base}. ${hints[0]} ${hints.length > 1 ? `(+${hints.length - 1} weiterer Hinweis)` : ''}`.trim());
+    } else {
+      banner('ok', `Dein Farbtyp: ${top.name}`, `${base} · unten änderbar`);
+    }
   } catch (err) {
     console.error('Automatische Analyse fehlgeschlagen:', err);
     state.analysis = null;

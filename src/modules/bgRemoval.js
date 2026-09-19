@@ -46,7 +46,10 @@ export async function removeBackground(imgEl, workCanvas, onStatus) {
     const mask = await segmentPerson(workCanvas, onStatus);
     onStatus?.('Kanten werden nachgezogen …');
     applyMask(ctx, W, H, mask);
-    return { url: workCanvas.toDataURL('image/png'), method: 'segmentation' };
+    // Die Maske wird weitergereicht: Die Farbanalyse tastet das Haar oberhalb
+    // des Haaransatzes ab und braucht dort eine verlaessliche Grenze zum
+    // Hintergrund. Sie noch einmal zu berechnen waere dieselbe Arbeit zweimal.
+    return { url: workCanvas.toDataURL('image/png'), method: 'segmentation', mask };
   } catch (err) {
     console.warn('Segmentierung nicht verfügbar, nutze Flood-Fill:', err.message);
     onStatus?.('Hintergrund wird entfernt …');
